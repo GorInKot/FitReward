@@ -6,6 +6,7 @@ import workoutRoutes from "./routes/workouts";
 import progressRoutes from "./routes/progress";
 import plansRoutes from "./routes/plans";
 import achievementRoutes from "./routes/achievements";
+import profileRoutes from "./routes/profile";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/workouts", workoutRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/achievements", achievementRoutes);
+app.use("/api/profile", profileRoutes);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {

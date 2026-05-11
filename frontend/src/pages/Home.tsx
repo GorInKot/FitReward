@@ -1,7 +1,7 @@
 const weekStats = [
   { label: "Тренировки", value: "4" },
   { label: "Минуты", value: "195" },
-  { label: "Стрик", value: "6 дней" }
+  { label: "Серия", value: "6 дней" }
 ];
 
 const recentAchievements = [
@@ -14,7 +14,7 @@ export default function Home() {
     <section className="space-y-4">
       <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-4 text-slate-950">
         <p className="text-sm font-medium">Привет, Daniil 👋</p>
-        <h2 className="mt-1 text-2xl font-bold">Сегодня: Upper Body Strength</h2>
+        <h2 className="mt-1 text-2xl font-bold">Сегодня: Силовая на верх тела</h2>
         <p className="mt-1 text-sm">8 упражнений · 45 минут</p>
         <button className="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-emerald-300">
           Начать тренировку
@@ -36,7 +36,7 @@ export default function Home() {
           {recentAchievements.map((achievement) => (
             <li key={achievement.name} className="flex items-center justify-between rounded-xl bg-slate-800 p-3">
               <span className="text-sm">🏆 {achievement.name}</span>
-              <span className="text-xs text-amber-300">+{achievement.reward} Stars</span>
+              <span className="text-xs text-amber-300">+{achievement.reward} звёзд</span>
             </li>
           ))}
         </ul>

@@ -1,3 +1,3 @@
-export function formatStars(stars: number): string {
-  return `${stars} Stars`;
+export function formatзвёзд(stars: number): string {
+  return `${stars} звёзд`;
 }

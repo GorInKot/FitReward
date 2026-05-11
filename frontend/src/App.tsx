@@ -7,11 +7,11 @@ import Profile from "./pages/Profile";
 import { useTelegram } from "./hooks/useTelegram";
 
 const navItems = [
-  { to: "/", label: "Home" },
-  { to: "/workout", label: "Workout" },
-  { to: "/progress", label: "Progress" },
-  { to: "/plans", label: "Plans" },
-  { to: "/profile", label: "Profile" }
+  { to: "/", label: "Главная" },
+  { to: "/workout", label: "Тренировка" },
+  { to: "/progress", label: "Прогресс" },
+  { to: "/plans", label: "Планы" },
+  { to: "/profile", label: "Профиль" }
 ];
 
 export default function App() {

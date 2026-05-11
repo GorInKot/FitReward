@@ -12,7 +12,7 @@ export default function Workout() {
     <section className="space-y-4">
       <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
         <p className="text-xs text-slate-400">Активная тренировка</p>
-        <h2 className="mt-1 text-xl font-semibold">Upper Body Strength</h2>
+        <h2 className="mt-1 text-xl font-semibold">Силовая на верх тела</h2>
         <p className="mt-2 text-sm text-slate-300">Прогресс: {completed}/{exercises.length} упражнений</p>
         <div className="mt-3 h-2 rounded-full bg-slate-800">
           <div
