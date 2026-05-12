@@ -1,5 +1,5 @@
-import { FitnessLevel, Goal } from "@prisma/client";
 import { Router } from "express";
+import { FitnessLevel, Goal } from "../prismaEnums";
 import { z } from "zod";
 import { prisma } from "../utils/database";
 
