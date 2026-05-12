@@ -63,6 +63,29 @@ function useFallbackStorage() {
   return !process.env.DATABASE_URL;
 }
 
+function shouldUseMemoryFallback(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.name === "PrismaClientInitializationError" ||
+    error.message.includes("Can't reach database server") ||
+    error.message.includes("P1001")
+  );
+}
+
+function mergeProfileUpdate(
+  telegramId: string,
+  data: z.infer<typeof updateProfileSchema>
+): ProfilePayload {
+  const current = getFallbackProfile(telegramId);
+  return {
+    ...current,
+    ...data,
+    goals: data.goals ?? current.goals
+  };
+}
+
 router.get("/:telegramId", async (req, res) => {
   const parsed = telegramIdSchema.safeParse(req.params);
   if (!parsed.success) {
@@ -74,30 +97,38 @@ router.get("/:telegramId", async (req, res) => {
       return res.json(getFallbackProfile(parsed.data.telegramId));
     }
 
-    const user = await prisma.user.upsert({
-      where: { telegramId: parsed.data.telegramId },
-      update: {},
-      create: {
-        telegramId: parsed.data.telegramId,
-        fitnessLevel: FitnessLevel.BEGINNER,
-        goals: [Goal.GENERAL_FITNESS]
-      },
-      select: {
-        id: true,
-        telegramId: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        isPremium: true,
-        age: true,
-        weight: true,
-        height: true,
-        fitnessLevel: true,
-        goals: true
-      }
-    });
+    try {
+      const user = await prisma.user.upsert({
+        where: { telegramId: parsed.data.telegramId },
+        update: {},
+        create: {
+          telegramId: parsed.data.telegramId,
+          fitnessLevel: FitnessLevel.BEGINNER,
+          goals: [Goal.GENERAL_FITNESS]
+        },
+        select: {
+          id: true,
+          telegramId: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          isPremium: true,
+          age: true,
+          weight: true,
+          height: true,
+          fitnessLevel: true,
+          goals: true
+        }
+      });
 
-    return res.json(user);
+      return res.json(user);
+    } catch (error) {
+      if (shouldUseMemoryFallback(error)) {
+        console.warn("[profile] Database unavailable, using in-memory profile store");
+        return res.json(getFallbackProfile(parsed.data.telegramId));
+      }
+      throw error;
+    }
   } catch (error) {
     return res.status(500).json({ error: "Failed to load profile", details: String(error) });
   }
@@ -116,46 +147,51 @@ router.put("/:telegramId", async (req, res) => {
 
   try {
     if (useFallbackStorage()) {
-      const current = getFallbackProfile(paramParsed.data.telegramId);
-      const updated: ProfilePayload = {
-        ...current,
-        ...bodyParsed.data,
-        goals: bodyParsed.data.goals ?? current.goals
-      };
+      const updated = mergeProfileUpdate(paramParsed.data.telegramId, bodyParsed.data);
       fallbackProfiles.set(paramParsed.data.telegramId, updated);
       return res.json(updated);
     }
 
-    const user = await prisma.user.upsert({
-      where: { telegramId: paramParsed.data.telegramId },
-      update: bodyParsed.data,
-      create: {
-        telegramId: paramParsed.data.telegramId,
-        fitnessLevel: bodyParsed.data.fitnessLevel ?? FitnessLevel.BEGINNER,
-        goals: bodyParsed.data.goals ?? [Goal.GENERAL_FITNESS],
-        firstName: bodyParsed.data.firstName,
-        lastName: bodyParsed.data.lastName,
-        username: bodyParsed.data.username,
-        age: bodyParsed.data.age ?? undefined,
-        weight: bodyParsed.data.weight ?? undefined,
-        height: bodyParsed.data.height ?? undefined
-      },
-      select: {
-        id: true,
-        telegramId: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        isPremium: true,
-        age: true,
-        weight: true,
-        height: true,
-        fitnessLevel: true,
-        goals: true
-      }
-    });
+    try {
+      const user = await prisma.user.upsert({
+        where: { telegramId: paramParsed.data.telegramId },
+        update: bodyParsed.data,
+        create: {
+          telegramId: paramParsed.data.telegramId,
+          fitnessLevel: bodyParsed.data.fitnessLevel ?? FitnessLevel.BEGINNER,
+          goals: bodyParsed.data.goals ?? [Goal.GENERAL_FITNESS],
+          firstName: bodyParsed.data.firstName,
+          lastName: bodyParsed.data.lastName,
+          username: bodyParsed.data.username,
+          age: bodyParsed.data.age ?? undefined,
+          weight: bodyParsed.data.weight ?? undefined,
+          height: bodyParsed.data.height ?? undefined
+        },
+        select: {
+          id: true,
+          telegramId: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          isPremium: true,
+          age: true,
+          weight: true,
+          height: true,
+          fitnessLevel: true,
+          goals: true
+        }
+      });
 
-    return res.json(user);
+      return res.json(user);
+    } catch (error) {
+      if (shouldUseMemoryFallback(error)) {
+        console.warn("[profile] Database unavailable, using in-memory profile store");
+        const updated = mergeProfileUpdate(paramParsed.data.telegramId, bodyParsed.data);
+        fallbackProfiles.set(paramParsed.data.telegramId, updated);
+        return res.json(updated);
+      }
+      throw error;
+    }
   } catch (error) {
     return res.status(500).json({ error: "Failed to update profile", details: String(error) });
   }
