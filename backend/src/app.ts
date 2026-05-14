@@ -10,7 +10,14 @@ import profileRoutes from "./routes/profile";
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+const corsOriginEnv = (process.env.CORS_ORIGIN ?? "").trim();
+const corsOrigin =
+  corsOriginEnv === "" || corsOriginEnv === "*"
+    ? true
+    : corsOriginEnv.split(",").map((value) => value.trim()).filter(Boolean);
+
+app.set("trust proxy", 1);
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.get("/", (_req, res) =>
