@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { FitnessLevel, Goal } from "../prismaEnums";
+import {
+  ExperienceLevel,
+  Limitation,
+  PrimaryGoal,
+  TrainingEnvironment,
+  TrainingStructure
+} from "../prismaEnums";
 import { z } from "zod";
 import { prisma } from "../utils/database";
 
@@ -11,9 +17,7 @@ const updateProfileSchema = z.object({
   username: z.string().min(1).optional(),
   age: z.number().int().positive().max(120).nullable().optional(),
   weight: z.number().positive().max(500).nullable().optional(),
-  height: z.number().int().positive().max(300).nullable().optional(),
-  fitnessLevel: z.nativeEnum(FitnessLevel).optional(),
-  goals: z.array(z.nativeEnum(Goal)).optional()
+  height: z.number().int().positive().max(300).nullable().optional()
 });
 
 type ProfilePayload = {
@@ -26,19 +30,21 @@ type ProfilePayload = {
   age: number | null;
   weight: number | null;
   height: number | null;
-  fitnessLevel: FitnessLevel;
-  goals: Goal[];
+  primaryGoal: PrimaryGoal | null;
+  experienceLevel: ExperienceLevel | null;
+  trainingDaysPerWeek: number | null;
+  trainingEnvironment: TrainingEnvironment | null;
+  limitations: Limitation[];
+  recommendedStructure: TrainingStructure | null;
+  recommendationReasons: string[];
+  onboardingCompletedAt: string | null;
+  onboardingCompleted: boolean;
 };
 
 const fallbackProfiles = new Map<string, ProfilePayload>();
 
-function getFallbackProfile(telegramId: string): ProfilePayload {
-  const current = fallbackProfiles.get(telegramId);
-  if (current) {
-    return current;
-  }
-
-  const created: ProfilePayload = {
+function emptyProfile(telegramId: string): ProfilePayload {
+  return {
     id: `local_${telegramId}`,
     telegramId,
     firstName: null,
@@ -48,9 +54,24 @@ function getFallbackProfile(telegramId: string): ProfilePayload {
     age: null,
     weight: null,
     height: null,
-    fitnessLevel: FitnessLevel.BEGINNER,
-    goals: [Goal.GENERAL_FITNESS]
+    primaryGoal: null,
+    experienceLevel: null,
+    trainingDaysPerWeek: null,
+    trainingEnvironment: null,
+    limitations: [],
+    recommendedStructure: null,
+    recommendationReasons: [],
+    onboardingCompletedAt: null,
+    onboardingCompleted: false
   };
+}
+
+function getFallbackProfile(telegramId: string): ProfilePayload {
+  const current = fallbackProfiles.get(telegramId);
+  if (current) {
+    return current;
+  }
+  const created = emptyProfile(telegramId);
   fallbackProfiles.set(telegramId, created);
   return created;
 }
@@ -70,18 +91,6 @@ function shouldUseMemoryFallback(error: unknown): boolean {
   );
 }
 
-function mergeProfileUpdate(
-  telegramId: string,
-  data: z.infer<typeof updateProfileSchema>
-): ProfilePayload {
-  const current = getFallbackProfile(telegramId);
-  return {
-    ...current,
-    ...data,
-    goals: data.goals ?? current.goals
-  };
-}
-
 const PROFILE_SELECT = {
   id: true,
   telegramId: true,
@@ -92,9 +101,43 @@ const PROFILE_SELECT = {
   age: true,
   weight: true,
   height: true,
-  fitnessLevel: true,
-  goals: true
+  primaryGoal: true,
+  experienceLevel: true,
+  trainingDaysPerWeek: true,
+  trainingEnvironment: true,
+  limitations: true,
+  recommendedStructure: true,
+  recommendationReasons: true,
+  onboardingCompletedAt: true
 } as const;
+
+type PrismaUser = {
+  id: string;
+  telegramId: string;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  isPremium: boolean;
+  age: number | null;
+  weight: number | null;
+  height: number | null;
+  primaryGoal: PrimaryGoal | null;
+  experienceLevel: ExperienceLevel | null;
+  trainingDaysPerWeek: number | null;
+  trainingEnvironment: TrainingEnvironment | null;
+  limitations: Limitation[];
+  recommendedStructure: TrainingStructure | null;
+  recommendationReasons: string[];
+  onboardingCompletedAt: Date | null;
+};
+
+function serialize(user: PrismaUser): ProfilePayload {
+  return {
+    ...user,
+    onboardingCompletedAt: user.onboardingCompletedAt ? user.onboardingCompletedAt.toISOString() : null,
+    onboardingCompleted: Boolean(user.onboardingCompletedAt)
+  };
+}
 
 router.get("/me", async (req, res) => {
   const telegramId = req.telegramId;
@@ -111,15 +154,10 @@ router.get("/me", async (req, res) => {
       const user = await prisma.user.upsert({
         where: { telegramId },
         update: {},
-        create: {
-          telegramId,
-          fitnessLevel: FitnessLevel.BEGINNER,
-          goals: [Goal.GENERAL_FITNESS]
-        },
+        create: { telegramId },
         select: PROFILE_SELECT
       });
-
-      return res.json(user);
+      return res.json(serialize(user));
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");
@@ -145,7 +183,8 @@ router.put("/me", async (req, res) => {
 
   try {
     if (useFallbackStorage()) {
-      const updated = mergeProfileUpdate(telegramId, bodyParsed.data);
+      const current = getFallbackProfile(telegramId);
+      const updated = { ...current, ...bodyParsed.data };
       fallbackProfiles.set(telegramId, updated);
       return res.json(updated);
     }
@@ -154,25 +193,15 @@ router.put("/me", async (req, res) => {
       const user = await prisma.user.upsert({
         where: { telegramId },
         update: bodyParsed.data,
-        create: {
-          telegramId,
-          fitnessLevel: bodyParsed.data.fitnessLevel ?? FitnessLevel.BEGINNER,
-          goals: bodyParsed.data.goals ?? [Goal.GENERAL_FITNESS],
-          firstName: bodyParsed.data.firstName,
-          lastName: bodyParsed.data.lastName,
-          username: bodyParsed.data.username,
-          age: bodyParsed.data.age ?? undefined,
-          weight: bodyParsed.data.weight ?? undefined,
-          height: bodyParsed.data.height ?? undefined
-        },
+        create: { telegramId, ...bodyParsed.data },
         select: PROFILE_SELECT
       });
-
-      return res.json(user);
+      return res.json(serialize(user));
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");
-        const updated = mergeProfileUpdate(telegramId, bodyParsed.data);
+        const current = getFallbackProfile(telegramId);
+        const updated = { ...current, ...bodyParsed.data };
         fallbackProfiles.set(telegramId, updated);
         return res.json(updated);
       }

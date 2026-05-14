@@ -1,149 +1,204 @@
 # FitReward — Roadmap
 
-Чек-лист задач по разработке после запуска MVP-стенда в проде (Vercel + Render + Neon).
-Отмечай выполненные задачи как `[x]`.
+Чек-лист по разработке FitReward как **умного фитнес-тренера** (не generic workout tracker).
+Продуктовое видение: пользователь не выбирает методологию тренировок (Full-body/Split) — система рекомендует её сама на основе ответов в онбординге и адаптируется по ходу занятий.
+
+Отмечай выполненные задачи как `[x]`. Каждая фаза заканчивается деплоем в прод и проверкой в Telegram.
 
 ---
 
-## Этап 1. Безопасность (P0)
+## Фаза 1. Безопасность профиля (P0) — ✅ ВЫПОЛНЕНО (2026-05-14)
 
-Закрыть критическую дыру: сейчас `/api/profile/:telegramId` принимает любой telegramId без проверки — любой пользователь может читать/менять чужой профиль, просто подставив ID в URL.
-
-- [ ] Создать middleware `requireTelegramAuth` в `backend/src/middleware/`
-  - [ ] Читает заголовок `X-Telegram-Init-Data` из запроса
-  - [ ] Валидирует подпись через существующий `validateTelegramInitData`
-  - [ ] Извлекает `user.id` из `initData` и кладёт в `req.telegramId`
-  - [ ] При невалидной подписи — `401`
-- [ ] Применить middleware к `/api/profile/*` (и далее ко всем приватным маршрутам)
-- [ ] В роуте `profile.ts` сверять `req.params.telegramId` с `req.telegramId` — при несовпадении `403`
-- [ ] На фронте: в `frontend/src/utils/api.ts` добавлять заголовок `X-Telegram-Init-Data` со значением `window.Telegram.WebApp.initData`
-- [ ] Локально проверить: запрос без заголовка → 401, с чужим telegramId в URL → 403
-- [ ] В проде проверить, что профиль продолжает работать в Telegram Mini App
+- [x] Middleware `requireTelegramAuth` с валидацией HMAC + `auth_date` (24ч)
+- [x] Dev-bypass через `ALLOW_DEV_AUTH=true` для локальной разработки
+- [x] Рефакторинг `/api/profile/:telegramId` → `/api/profile/me`
+- [x] Фронт автоматически шлёт `X-Telegram-Init-Data`
+- [x] Прод-проверка в Telegram
 
 ---
 
-## Этап 2. Workout CRUD (P1)
+## Фаза 2. Онбординг + рекомендация структуры тренировок (P0) — 🟡 ОЖИДАЕТ ПРОВЕРКИ В ПРОДЕ
 
-Заменить захардкоженные данные на странице «Тренировка» реальным CRUD.
+Первый раз заходит пользователь — проходит 5-шаговый wizard → система рекомендует Full-body/Upper-Lower/PPL/Split с обоснованием.
 
 ### Backend
-- [ ] В `backend/src/routes/workouts.ts` заменить заглушки на Prisma:
-  - [ ] `GET /api/workouts` — список тренировок текущего пользователя (через middleware из Этапа 1)
-  - [ ] `GET /api/workouts/:id` — одна тренировка с упражнениями
-  - [ ] `POST /api/workouts` — создание тренировки + упражнений (Zod-валидация payload)
-  - [ ] `PATCH /api/workouts/:id` — обновление (отметка `completedAt`, `notes`)
-  - [ ] `DELETE /api/workouts/:id`
-- [ ] Эндпоинты для упражнений внутри тренировки:
-  - [ ] `PATCH /api/workouts/:workoutId/exercises/:exerciseId` — отметка `completed`, фактические sets/reps/weight
+- [x] Переписать `prisma/schema.prisma` с нуля:
+  - [x] Расширить `User` полями онбординга + `recommendedStructure`, `recommendationReasons`, `onboardingCompletedAt`
+  - [x] Новые enums: `PrimaryGoal`, `ExperienceLevel`, `TrainingEnvironment`, `Limitation`, `TrainingStructure`
+  - [x] Удалить старые модели `Workout`, `Exercise`, `Progress`, `Achievement`, `UserAchievement`
+  - [x] Удалить старые enums `FitnessLevel`, `Goal`, `WorkoutType`, `ExerciseType`, `AchievementType`
+- [x] Миграция `20260514_onboarding_redesign` (drop + recreate)
+- [x] Удалить старые роуты-заглушки `/api/workouts`, `/api/progress`, `/api/plans`, `/api/achievements`
+- [x] `POST /api/onboarding` + `POST /api/onboarding/preview` с Zod-валидацией
+- [x] `GET /api/profile/me` расширен флагом `onboardingCompleted` и новыми полями
+- [x] Чистая функция `recommendTrainingStructure` в `services/trainingRecommendation.ts`
 
 ### Frontend
-- [ ] Подключить `frontend/src/store/workoutStore.ts` или React Query для кеша
-- [ ] Заменить моки в `frontend/src/pages/Workout.tsx` на данные из API
-- [ ] Форма «Новая тренировка» (название, тип, длительность, добавление упражнений)
-- [ ] Кнопка «Выполнено» в карточке упражнения шлёт PATCH
-- [ ] Кнопка «Завершить тренировку» проставляет `completedAt`
-- [ ] Главная страница `frontend/src/pages/Home.tsx` — заменить моки на реальные статистики «за неделю»
+- [x] Маршрут `/onboarding` с компонентом-wizard (5 шагов + result screen)
+- [x] Прогресс-бар шагов, валидация на каждом
+- [x] Экран рекомендации с обоснованием
+- [x] Zustand `profileStore` для общего состояния (избегает race condition при редиректе)
+- [x] Логика: `!profile.onboardingCompleted` → редирект на `/onboarding`
+- [x] Profile.tsx переписан под новые поля
+- [x] Кнопка «Пройти онбординг заново» в Profile
 
-### Backend: статистика
-- [ ] `GET /api/workouts/stats?range=week` — количество тренировок, суммарные минуты, текущая серия
-- [ ] `calculateWorkoutStreak` в `progressCalculator.ts` — переписать на нормальную логику
-
----
-
-## Этап 3. Progress tracking (P1)
-
-Реальное отслеживание веса/замеров вместо моков.
-
-### Backend
-- [ ] `GET /api/progress` — все записи пользователя, отсортированы по дате
-- [ ] `POST /api/progress` — новая запись (вес, % жира, замеры, заметки)
-- [ ] `PATCH /api/progress/:id` / `DELETE /api/progress/:id`
-
-### Frontend
-- [ ] `frontend/src/pages/Progress.tsx` — реальный график веса по данным из API
-- [ ] Форма «Добавить замер» (модалка или отдельная страница)
-- [ ] Календарь тренировок — подсветка дней по реальным `completedAt` из workouts
+### Тест
+- [x] Локально: typecheck чистый, API preview/profile работают (submit упадёт без БД — это OK)
+- [ ] Прод: пройти онбординг в Telegram, проверить сохранение, проверить, что повторный вход не редиректит
 
 ---
 
-## Этап 4. Bot в проде (P2)
+## Фаза 3. Каталог упражнений из публичного датасета (P1)
 
-Сейчас бот существует только в коде. Деплой как Background Worker на Render.
+Импорт wger.de open dataset → нормализация → таблица `ExerciseCatalog`.
 
-- [ ] Добавить в `render.yaml` второй сервис типа `worker` для `bot/`
-- [ ] Env vars для бота: `TELEGRAM_BOT_TOKEN`, `WEBAPP_URL=https://fitreward-frontend.vercel.app`, `API_URL=https://fitreward-backend.onrender.com`
-- [ ] У @BotFather через `/setmenubutton` указать Mini App URL — чтобы у бота появилась кнопка «Open App» в меню
-- [ ] Команда `/start` уже работает — проверить в Telegram
-- [ ] Реализовать `/profile`, `/workout` команды бота (или решить, что они не нужны и достаточно Mini App)
-
----
-
-## Этап 5. Achievements engine (P2)
-
-Заменить заглушку реальной логикой.
-
-### Backend
-- [ ] Сидер достижений: один раз заполнить таблицу `Achievement` начальным набором (первая тренировка, неделя в режиме, 10 тренировок, и т.д.)
-- [ ] `services/achievementEngine.ts` — реальная проверка условий:
-  - [ ] `WORKOUT_COUNT` — счётчик завершённых тренировок
-  - [ ] `CONSISTENCY` — серия дней подряд
-  - [ ] `STRENGTH_PR` — превышение прошлого максимума в упражнении
-  - [ ] `WEIGHT_MILESTONE` — изменение веса на X кг
-- [ ] Триггер проверки достижений после `PATCH /api/workouts/:id` с `completedAt` и после `POST /api/progress`
-- [ ] При unlock — создавать `UserAchievement`, опционально слать уведомление через бота
-
-### Frontend
-- [ ] Список ачивок на странице Профиль — реальные данные из `GET /api/achievements/:userId`
-- [ ] Кнопка «Забрать награду» меняет `claimed=true`
-
-### Bot
-- [ ] При unlock — `sendAchievementNotification` (уже реализована, нужен вызов)
+- [ ] Скрипт `backend/scripts/seed-exercises.ts`:
+  - [ ] Скачать wger exercise dataset (CC-BY-SA, ~800 упражнений с переводами)
+  - [ ] Маппинг полей: name, category, muscleGroups[], equipment[], instructions, imageUrl
+  - [ ] Дедупликация по name + категории
+  - [ ] Запись в `ExerciseCatalog` через `prisma.exerciseCatalog.createMany`
+- [ ] Prisma модель `ExerciseCatalog`:
+  - id, slug, name (ru/en), category (PUSH/PULL/LEGS/CORE/CARDIO), primaryMuscles[], secondaryMuscles[], equipment, difficulty, instructions, imageUrl
+- [ ] Новые enums: `MuscleGroup`, `Equipment`, `MovementCategory`
+- [ ] `GET /api/exercises?category=&equipment=&search=` — поиск с фильтрами
+- [ ] Запустить seed в проде через Render shell или `prisma db seed`
+- [ ] (опционально) Frontend: страница «Библиотека упражнений» для отладки
 
 ---
 
-## Этап 6. AI-планы тренировок (P3)
+## Фаза 4. Генератор программы из шаблонов (P1)
 
-Подключить LLM для генерации планов под цели пользователя.
+На основе `recommendedStructure` собираем недельный план: список тренировочных дней с подобранными упражнениями.
 
-- [ ] Выбрать провайдера: Claude API (`@anthropic-ai/sdk`) или OpenAI
-- [ ] Env var на Render: `ANTHROPIC_API_KEY` (или `OPENAI_API_KEY`)
-- [ ] `services/aiPlanGenerator.ts` — реальный вызов LLM с промптом, который принимает: уровень, цели, доступное время, дни в неделю
-- [ ] Парсинг ответа в JSON со списком упражнений, sets/reps
-- [ ] Кеширование (одинаковые входы → не дёргать LLM каждый раз)
-- [ ] Сохранение сгенерированных планов в БД (новая модель `Plan`?)
-- [ ] Frontend: страница «Планы» — кнопка «Создать ИИ-план», форма параметров, отображение результата
-
----
-
-## Этап 7. Напоминания (P3)
-
-Push в Telegram, если пользователь пропустил тренировку.
-
-- [ ] В боте — cron-планировщик (`node-cron` или Render Cron Job)
-- [ ] Логика: для каждого пользователя с активным планом — если в назначенный день не отметил тренировку, отправить `sendWorkoutReminder`
-- [ ] На фронте — настройки уведомлений в Профиле (сейчас они показываются как декорация)
+- [ ] Prisma модели:
+  - `ProgramTemplate` (стандартные планы Full-body/UL/PPL) — захардкожены через seed
+  - `Program` (инстанс программы для конкретного юзера, активна одна за раз)
+  - `ProgramDay` (день недели + список упражнений из каталога + предлагаемые сеты/повторения)
+- [ ] Логика генерации:
+  - [ ] Подбор упражнений с учётом `trainingEnvironment` (фильтр по equipment)
+  - [ ] Подбор с учётом `limitations` (исключить движения, нагружающие проблемные зоны)
+  - [ ] Базовая прогрессия: для новичков 3×8 на компаундах, для среднего 4×6–10 и т.д.
+- [ ] `POST /api/program/generate` — после онбординга вызывает генератор, сохраняет активную программу
+- [ ] `GET /api/program/current` — возвращает активную программу с днями и упражнениями
+- [ ] `POST /api/program/regenerate` — пересоздать (например, поменялся профиль)
+- [ ] Frontend: страница «План» показывает реальный план вместо моков
 
 ---
 
-## Этап 8. Платежи и Telegram Stars (P3)
+## Фаза 5. Логирование тренировки (P1)
 
-В `bot/src/index.ts` уже стоят хендлеры `pre_checkout_query` и `successful_payment`, но без бизнес-логики.
+Запуск тренировки → лог сетов с весом/повторениями/RIR → завершение.
 
-- [ ] Решить, за что брать Stars: премиум-планы? Снятие лимита на ИИ-генерации? Косметика?
-- [ ] Создать инвойс через `bot.telegram.sendInvoice`
-- [ ] При `successful_payment` — апдейтить `User.isPremium` или начислять «звёзды» в БД
-- [ ] Frontend: бейдж «Premium», блокировка/разблокировка функций по `isPremium`
+- [ ] Prisma модели:
+  - `WorkoutSession` (id, userId, programDayId, startedAt, completedAt, perceivedFatigue)
+  - `SetLog` (id, sessionId, exerciseCatalogId, setNumber, weight, reps, rir, completedAt)
+- [ ] Эндпоинты:
+  - `POST /api/sessions` — создать сессию из ProgramDay (клонирует упражнения и предлагаемые сеты)
+  - `GET /api/sessions/active` — текущая активная сессия
+  - `POST /api/sessions/:id/sets` — добавить лог сета
+  - `PATCH /api/sessions/:id` — завершить
+- [ ] Frontend: переписать `Workout.tsx`:
+  - [ ] Список упражнений из активной сессии
+  - [ ] Карточка упражнения: предложенные значения + поля для фактических reps/weight + быстрый выбор RIR (0/1/2/3+/слишком легко)
+  - [ ] Кнопка «Следующий сет» → автоматически переключает
+  - [ ] Завершение → POST со sliderom perceivedFatigue
+- [ ] Bot: отправлять напоминание о следующей тренировке через `bot/src/services/notifications.ts`
 
 ---
 
-## Этап 9. Polish и DX (P3)
+## Фаза 6. Адаптивная прогрессия (P1)
 
-Мелочи, которые лучше сделать когда основное работает.
+После каждой сессии корректировать веса/повторения для следующего раза.
 
-- [ ] Очистить неиспользуемые stores `frontend/src/store/{auth,progress}Store.ts` или начать ими пользоваться
-- [ ] Заменить заглушки `useWorkout.ts`/`useProgress.ts` или удалить
-- [ ] Loading skeletons на всех страницах вместо моментального flash
-- [ ] Обработка ошибок API через единый toast/alert
-- [ ] Тёмная тема уже есть — проверить на iOS Telegram (бывают разницы в safe-area)
-- [ ] Добавить `@twa-dev/sdk` haptic feedback на кнопках действий
-- [ ] README — реальные инструкции по деплою (а не просто scaffold-описание)
+- [ ] Алгоритм в `services/progressionEngine.ts`:
+  - [ ] RIR 0–1 на последнем сете → увеличить вес на 2.5–5%
+  - [ ] RIR 3+ → текущий вес слишком лёгкий → повысить
+  - [ ] RIR 2 → держать
+  - [ ] «Слишком легко» → +10%
+  - [ ] Учёт типа упражнения: компаунды растут быстрее
+- [ ] При завершении сессии → пересчёт `ProgramDay.exercises[].suggestedWeight` для следующего цикла
+- [ ] Детект плато: 3 сессии подряд без роста → флаг + предложение deload
+- [ ] Frontend: показывать «↑ Вес повышен по сравнению с прошлой тренировкой»
+
+---
+
+## Фаза 7. Progress tracking (P1)
+
+Замеры тела, история, графики, метрики.
+
+- [ ] Prisma модель `BodyMetric` (id, userId, date, weight, bodyFat, measurements JSONB, photos[], notes)
+- [ ] CRUD `/api/metrics`
+- [ ] Frontend Progress page:
+  - [ ] Реальный график веса (svg или Recharts)
+  - [ ] Календарь тренировок: дни с completedAt подсвечены
+  - [ ] Personal Records: вытащить из SetLog max(weight) по упражнению
+  - [ ] Tonnage за неделю/месяц (volume = sets × reps × weight)
+  - [ ] Серия дней подряд (streak)
+- [ ] Форма «Добавить замер»
+
+---
+
+## Фаза 8. Fatigue management (P2)
+
+Детект перетренированности и предложение deload.
+
+- [ ] Метрики усталости в `services/fatigueDetector.ts`:
+  - [ ] Снижение производительности (RIR растёт при том же весе)
+  - [ ] Пропущенные тренировки (>2 за неделю)
+  - [ ] Высокий perceivedFatigue 3 сессии подряд
+- [ ] Сигнал deload: −40% volume на 1 неделю
+- [ ] Frontend: баннер «Похоже, ты устал. Рекомендуем неделю с пониженной нагрузкой» + кнопка «Применить deload»
+- [ ] Bot: уведомление о deload
+
+---
+
+## Фаза 9. AI-коуч (P2)
+
+Conversational layer для объяснений и советов.
+
+- [ ] Подключить Claude API через `@anthropic-ai/sdk`
+- [ ] Env: `ANTHROPIC_API_KEY` на Render
+- [ ] Endpoint `POST /api/coach/chat` — стрим ответов
+- [ ] System prompt: контекст пользователя (профиль + последние сессии + PRs)
+- [ ] Frontend: кнопка «Спросить тренера» с чатом
+- [ ] Prompt caching для system prompt + контекста пользователя
+- [ ] Лимит запросов на free tier (например 10/день, дальше — premium)
+
+---
+
+## Фаза 10. Достижения и геймификация (P2)
+
+- [ ] Prisma модели `Achievement` + `UserAchievement` (вернуть)
+- [ ] Сидер достижений: «Первая тренировка», «Неделя в режиме», «Удвоил вес в жиме», «10 PR'ов», etc.
+- [ ] `services/achievementEngine.ts` — реальная проверка триггеров после каждой сессии
+- [ ] Уведомления через бота при unlock
+
+---
+
+## Фаза 11. Бот в проде + напоминания (P2)
+
+- [ ] Деплой `bot/` как Background Worker на Render (добавить в `render.yaml`)
+- [ ] @BotFather: `/setmenubutton` → Mini App URL
+- [ ] Cron-планировщик в боте (`node-cron`):
+  - Если сегодня тренировочный день и сессия не начата к 18:00 → reminder
+- [ ] Команды `/profile`, `/today` (показать план на сегодня), `/streak`
+
+---
+
+## Фаза 12. Telegram Stars / монетизация (P3)
+
+- [ ] Решить premium-фичи: безлимитные AI-запросы? Расширенная аналитика? Доступ к продвинутым программам?
+- [ ] Telegram invoice через `bot.telegram.sendInvoice`
+- [ ] Обработка `successful_payment` → `User.isPremium = true`
+- [ ] UI: бейдж Premium, gating premium-фич
+
+---
+
+## Фаза 13. Polish / DX (P3)
+
+- [ ] Очистить неиспользуемые stores и заглушечные хуки фронта
+- [ ] Loading skeletons
+- [ ] Тост-нотификации для ошибок API
+- [ ] Haptic feedback через `@twa-dev/sdk`
+- [ ] Тёмная/светлая тема в соответствии с темой Telegram
+- [ ] README — реальные инструкции по локалу и деплою

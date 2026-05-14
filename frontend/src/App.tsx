@@ -1,10 +1,13 @@
-import { NavLink, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Workout from "./pages/Workout";
 import Progress from "./pages/Progress";
 import Plans from "./pages/Plans";
 import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
 import { useTelegram } from "./hooks/useTelegram";
+import { useProfileStore } from "./store/profileStore";
 
 const navItems = [
   { to: "/", label: "Главная" },
@@ -16,6 +19,37 @@ const navItems = [
 
 export default function App() {
   useTelegram();
+  const location = useLocation();
+  const profile = useProfileStore((s) => s.profile);
+  const loading = useProfileStore((s) => s.loading);
+  const error = useProfileStore((s) => s.error);
+  const fetched = useProfileStore((s) => s.fetched);
+  const load = useProfileStore((s) => s.load);
+
+  useEffect(() => {
+    if (!fetched) {
+      void load();
+    }
+  }, [fetched, load]);
+
+  const isOnboardingRoute = location.pathname === "/onboarding";
+  const needsOnboarding = profile !== null && !profile.onboardingCompleted;
+
+  if (loading && !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+        Загрузка...
+      </div>
+    );
+  }
+
+  if (error && !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-rose-300">
+        Не удалось загрузить профиль: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -24,26 +58,44 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-lg p-4 pb-24">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/workout" element={<Workout />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/plans" element={<Plans />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route
+            path="/"
+            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Home />}
+          />
+          <Route
+            path="/workout"
+            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Workout />}
+          />
+          <Route
+            path="/progress"
+            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Progress />}
+          />
+          <Route
+            path="/plans"
+            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Plans />}
+          />
+          <Route
+            path="/profile"
+            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Profile />}
+          />
         </Routes>
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-slate-800 bg-slate-900/95 p-3 text-xs">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `rounded-full px-3 py-2 ${isActive ? "bg-emerald-500 text-slate-950" : "text-slate-300"}`
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+      {!isOnboardingRoute && (
+        <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-slate-800 bg-slate-900/95 p-3 text-xs">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 ${isActive ? "bg-emerald-500 text-slate-950" : "text-slate-300"}`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

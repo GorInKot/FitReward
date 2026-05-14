@@ -2,11 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth";
-import workoutRoutes from "./routes/workouts";
-import progressRoutes from "./routes/progress";
-import plansRoutes from "./routes/plans";
-import achievementRoutes from "./routes/achievements";
 import profileRoutes from "./routes/profile";
+import onboardingRoutes from "./routes/onboarding";
 import { requireTelegramAuth } from "./middleware/telegramAuth";
 
 const app = express();
@@ -32,11 +29,8 @@ app.get("/", (_req, res) =>
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/workouts", workoutRoutes);
-app.use("/api/progress", progressRoutes);
-app.use("/api/plans", plansRoutes);
-app.use("/api/achievements", achievementRoutes);
 app.use("/api/profile", requireTelegramAuth, profileRoutes);
+app.use("/api/onboarding", requireTelegramAuth, onboardingRoutes);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {

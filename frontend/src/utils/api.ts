@@ -36,34 +36,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export interface ApiWorkout {
-  id: string;
-  name: string;
-  type: string;
-  duration: number;
-}
+export type PrimaryGoal =
+  | "MUSCLE_GAIN"
+  | "FAT_LOSS"
+  | "GENERAL_FITNESS"
+  | "STRENGTH"
+  | "ENDURANCE"
+  | "BODY_RECOMPOSITION"
+  | "RETURN_AFTER_BREAK";
 
-export interface ApiProgress {
-  id: string;
-  date: string;
-  weight?: number;
-}
+export type ExperienceLevel = "NEVER" | "LESS_THAN_6_MONTHS" | "ONE_TO_TWO_YEARS" | "THREE_PLUS_YEARS";
 
-export interface ApiAchievement {
-  id: string;
-  name: string;
-  description: string;
-  reward: number;
-}
+export type TrainingEnvironment = "GYM" | "HOME" | "HOME_MINIMAL" | "BODYWEIGHT";
 
-export interface ApiPlan {
-  id: string;
-  name: string;
-  duration: number;
-  workoutsPerWeek: number;
-  targetGoal: string;
-  aiGenerated: boolean;
-}
+export type Limitation = "NONE" | "LOWER_BACK" | "KNEES" | "SHOULDERS" | "POST_INJURY";
+
+export type TrainingStructure = "FULL_BODY" | "UPPER_LOWER" | "PUSH_PULL_LEGS" | "SPLIT";
 
 export interface ApiProfile {
   id: string;
@@ -75,55 +63,39 @@ export interface ApiProfile {
   age: number | null;
   weight: number | null;
   height: number | null;
-  fitnessLevel: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-  goals: Array<"WEIGHT_LOSS" | "MUSCLE_GAIN" | "ENDURANCE" | "STRENGTH" | "GENERAL_FITNESS">;
+  primaryGoal: PrimaryGoal | null;
+  experienceLevel: ExperienceLevel | null;
+  trainingDaysPerWeek: number | null;
+  trainingEnvironment: TrainingEnvironment | null;
+  limitations: Limitation[];
+  recommendedStructure: TrainingStructure | null;
+  recommendationReasons: string[];
+  onboardingCompletedAt: string | null;
+  onboardingCompleted: boolean;
 }
 
-export function getWorkouts() {
-  return request<ApiWorkout[]>("/api/workouts");
+export interface OnboardingPayload {
+  primaryGoal: PrimaryGoal;
+  experienceLevel: ExperienceLevel;
+  trainingDaysPerWeek: number;
+  trainingEnvironment: TrainingEnvironment;
+  limitations: Limitation[];
+  acceptedStructure?: TrainingStructure;
 }
 
-export function createDemoWorkout() {
-  return request<ApiWorkout>("/api/workouts", {
-    method: "POST",
-    body: JSON.stringify({
-      name: "Demo Strength Session",
-      type: "STRENGTH",
-      duration: 45,
-      exercises: []
-    })
-  });
+export interface OnboardingResult {
+  profile: ApiProfile;
+  recommendation: {
+    suggestedStructure: TrainingStructure;
+    finalStructure: TrainingStructure;
+    reasons: string[];
+    overridden: boolean;
+  };
 }
 
-export function getProgress() {
-  return request<ApiProgress[]>("/api/progress");
-}
-
-export function addDemoProgress() {
-  return request<ApiProgress>("/api/progress", {
-    method: "POST",
-    body: JSON.stringify({
-      date: new Date().toISOString(),
-      weight: 80.8,
-      notes: "Demo check-in"
-    })
-  });
-}
-
-export function getAchievements(userId = "demo-user") {
-  return request<ApiAchievement[]>(`/api/achievements/${userId}`);
-}
-
-export function generatePlan() {
-  return request<ApiPlan>("/api/plans/generate", {
-    method: "POST",
-    body: JSON.stringify({
-      fitnessLevel: "BEGINNER",
-      goals: ["GENERAL_FITNESS"],
-      availableTime: 45,
-      daysPerWeek: 4
-    })
-  });
+export interface RecommendationPreview {
+  structure: TrainingStructure;
+  reasons: string[];
 }
 
 export function getProfile() {
@@ -131,10 +103,24 @@ export function getProfile() {
 }
 
 export function updateProfile(
-  payload: Partial<Pick<ApiProfile, "firstName" | "lastName" | "username" | "age" | "weight" | "height" | "fitnessLevel" | "goals">>
+  payload: Partial<Pick<ApiProfile, "firstName" | "lastName" | "username" | "age" | "weight" | "height">>
 ) {
   return request<ApiProfile>("/api/profile/me", {
     method: "PUT",
     body: JSON.stringify(payload)
+  });
+}
+
+export function submitOnboarding(payload: OnboardingPayload) {
+  return request<OnboardingResult>("/api/onboarding", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function previewRecommendation(experienceLevel: ExperienceLevel, trainingDaysPerWeek: number) {
+  return request<RecommendationPreview>("/api/onboarding/preview", {
+    method: "POST",
+    body: JSON.stringify({ experienceLevel, trainingDaysPerWeek })
   });
 }

@@ -8,119 +8,70 @@ datasource db {
 }
 
 model User {
-  id           String            @id @default(cuid())
-  telegramId   String            @unique
-  firstName    String?
-  lastName     String?
-  username     String?
-  isPremium    Boolean           @default(false)
-  age          Int?
-  weight       Float?
-  height       Float?
-  fitnessLevel FitnessLevel      @default(BEGINNER)
-  goals        Goal[]
-  workouts     Workout[]
-  progress     Progress[]
-  achievements UserAchievement[]
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id         String  @id @default(cuid())
+  telegramId String  @unique
+  firstName  String?
+  lastName   String?
+  username   String?
+  isPremium  Boolean @default(false)
+
+  // Body baseline — optional, can be filled outside onboarding
+  age    Int?
+  weight Float?
+  height Float?
+
+  // Onboarding answers
+  primaryGoal           PrimaryGoal?
+  experienceLevel       ExperienceLevel?
+  trainingDaysPerWeek   Int?
+  trainingEnvironment   TrainingEnvironment?
+  limitations           Limitation[]
+
+  // Derived recommendation
+  recommendedStructure  TrainingStructure?
+  recommendationReasons String[]
+
+  onboardingCompletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Workout {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  name        String
-  type        WorkoutType
-  duration    Int
-  exercises   Exercise[]
-  completedAt DateTime?
-  notes       String?
-  createdAt   DateTime    @default(now())
-}
-
-model Exercise {
-  id        String       @id @default(cuid())
-  workoutId String
-  workout   Workout      @relation(fields: [workoutId], references: [id])
-  name      String
-  type      ExerciseType
-  sets      Int?
-  reps      Int?
-  weight    Float?
-  duration  Int?
-  distance  Float?
-  restTime  Int?
-  completed Boolean      @default(false)
-  order     Int
-}
-
-model Progress {
-  id           String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  date          DateTime
-  weight        Float?
-  bodyFat       Float?
-  measurements  Json?
-  photos        String[]
-  notes         String?
-}
-
-model Achievement {
-  id               String            @id @default(cuid())
-  name             String            @unique
-  description      String
-  icon             String
-  type             AchievementType
-  condition        Json
-  reward           Int
-  userAchievements UserAchievement[]
-}
-
-model UserAchievement {
-  id            String      @id @default(cuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  achievementId String
-  achievement   Achievement @relation(fields: [achievementId], references: [id])
-  unlockedAt    DateTime    @default(now())
-  claimed       Boolean     @default(false)
-}
-
-enum FitnessLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-}
-
-enum Goal {
-  WEIGHT_LOSS
+enum PrimaryGoal {
   MUSCLE_GAIN
-  ENDURANCE
-  STRENGTH
+  FAT_LOSS
   GENERAL_FITNESS
+  STRENGTH
+  ENDURANCE
+  BODY_RECOMPOSITION
+  RETURN_AFTER_BREAK
 }
 
-enum WorkoutType {
-  STRENGTH
-  CARDIO
-  HIIT
-  YOGA
-  STRETCHING
+enum ExperienceLevel {
+  NEVER
+  LESS_THAN_6_MONTHS
+  ONE_TO_TWO_YEARS
+  THREE_PLUS_YEARS
 }
 
-enum ExerciseType {
-  STRENGTH
-  CARDIO
+enum TrainingEnvironment {
+  GYM
+  HOME
+  HOME_MINIMAL
   BODYWEIGHT
-  STRETCHING
 }
 
-enum AchievementType {
-  WORKOUT_COUNT
-  WEIGHT_MILESTONE
-  STRENGTH_PR
-  CONSISTENCY
-  TRANSFORMATION
+enum Limitation {
+  NONE
+  LOWER_BACK
+  KNEES
+  SHOULDERS
+  POST_INJURY
+}
+
+enum TrainingStructure {
+  FULL_BODY
+  UPPER_LOWER
+  PUSH_PULL_LEGS
+  SPLIT
 }
