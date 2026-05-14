@@ -5,10 +5,6 @@ import { prisma } from "../utils/database";
 
 const router = Router();
 
-const telegramIdSchema = z.object({
-  telegramId: z.string().min(1)
-});
-
 const updateProfileSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
@@ -86,46 +82,48 @@ function mergeProfileUpdate(
   };
 }
 
-router.get("/:telegramId", async (req, res) => {
-  const parsed = telegramIdSchema.safeParse(req.params);
-  if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid telegramId" });
+const PROFILE_SELECT = {
+  id: true,
+  telegramId: true,
+  firstName: true,
+  lastName: true,
+  username: true,
+  isPremium: true,
+  age: true,
+  weight: true,
+  height: true,
+  fitnessLevel: true,
+  goals: true
+} as const;
+
+router.get("/me", async (req, res) => {
+  const telegramId = req.telegramId;
+  if (!telegramId) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {
     if (useFallbackStorage()) {
-      return res.json(getFallbackProfile(parsed.data.telegramId));
+      return res.json(getFallbackProfile(telegramId));
     }
 
     try {
       const user = await prisma.user.upsert({
-        where: { telegramId: parsed.data.telegramId },
+        where: { telegramId },
         update: {},
         create: {
-          telegramId: parsed.data.telegramId,
+          telegramId,
           fitnessLevel: FitnessLevel.BEGINNER,
           goals: [Goal.GENERAL_FITNESS]
         },
-        select: {
-          id: true,
-          telegramId: true,
-          firstName: true,
-          lastName: true,
-          username: true,
-          isPremium: true,
-          age: true,
-          weight: true,
-          height: true,
-          fitnessLevel: true,
-          goals: true
-        }
+        select: PROFILE_SELECT
       });
 
       return res.json(user);
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");
-        return res.json(getFallbackProfile(parsed.data.telegramId));
+        return res.json(getFallbackProfile(telegramId));
       }
       throw error;
     }
@@ -134,10 +132,10 @@ router.get("/:telegramId", async (req, res) => {
   }
 });
 
-router.put("/:telegramId", async (req, res) => {
-  const paramParsed = telegramIdSchema.safeParse(req.params);
-  if (!paramParsed.success) {
-    return res.status(400).json({ error: "Invalid telegramId" });
+router.put("/me", async (req, res) => {
+  const telegramId = req.telegramId;
+  if (!telegramId) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   const bodyParsed = updateProfileSchema.safeParse(req.body);
@@ -147,17 +145,17 @@ router.put("/:telegramId", async (req, res) => {
 
   try {
     if (useFallbackStorage()) {
-      const updated = mergeProfileUpdate(paramParsed.data.telegramId, bodyParsed.data);
-      fallbackProfiles.set(paramParsed.data.telegramId, updated);
+      const updated = mergeProfileUpdate(telegramId, bodyParsed.data);
+      fallbackProfiles.set(telegramId, updated);
       return res.json(updated);
     }
 
     try {
       const user = await prisma.user.upsert({
-        where: { telegramId: paramParsed.data.telegramId },
+        where: { telegramId },
         update: bodyParsed.data,
         create: {
-          telegramId: paramParsed.data.telegramId,
+          telegramId,
           fitnessLevel: bodyParsed.data.fitnessLevel ?? FitnessLevel.BEGINNER,
           goals: bodyParsed.data.goals ?? [Goal.GENERAL_FITNESS],
           firstName: bodyParsed.data.firstName,
@@ -167,27 +165,15 @@ router.put("/:telegramId", async (req, res) => {
           weight: bodyParsed.data.weight ?? undefined,
           height: bodyParsed.data.height ?? undefined
         },
-        select: {
-          id: true,
-          telegramId: true,
-          firstName: true,
-          lastName: true,
-          username: true,
-          isPremium: true,
-          age: true,
-          weight: true,
-          height: true,
-          fitnessLevel: true,
-          goals: true
-        }
+        select: PROFILE_SELECT
       });
 
       return res.json(user);
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");
-        const updated = mergeProfileUpdate(paramParsed.data.telegramId, bodyParsed.data);
-        fallbackProfiles.set(paramParsed.data.telegramId, updated);
+        const updated = mergeProfileUpdate(telegramId, bodyParsed.data);
+        fallbackProfiles.set(telegramId, updated);
         return res.json(updated);
       }
       throw error;

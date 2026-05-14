@@ -1,12 +1,23 @@
+import { getTelegramInitData, getTelegramUserId } from "./telegram";
+
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((init?.headers as Record<string, string>) ?? {})
+  };
+
+  const initData = getTelegramInitData();
+  if (initData) {
+    headers["X-Telegram-Init-Data"] = initData;
+  } else {
+    headers["X-Dev-Telegram-Id"] = getTelegramUserId();
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {})
-    },
-    ...init
+    ...init,
+    headers
   });
 
   if (!response.ok) {
@@ -115,15 +126,14 @@ export function generatePlan() {
   });
 }
 
-export function getProfile(telegramId: string) {
-  return request<ApiProfile>(`/api/profile/${telegramId}`);
+export function getProfile() {
+  return request<ApiProfile>("/api/profile/me");
 }
 
 export function updateProfile(
-  telegramId: string,
   payload: Partial<Pick<ApiProfile, "firstName" | "lastName" | "username" | "age" | "weight" | "height" | "fitnessLevel" | "goals">>
 ) {
-  return request<ApiProfile>(`/api/profile/${telegramId}`, {
+  return request<ApiProfile>("/api/profile/me", {
     method: "PUT",
     body: JSON.stringify(payload)
   });

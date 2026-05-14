@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiProfile, getProfile, updateProfile } from "../utils/api";
-import { getTelegramUserId, getTelegramUsername } from "../utils/telegram";
+import { getTelegramUsername } from "../utils/telegram";
 
 const achievements = [
   { name: "Первая тренировка", claimed: true, reward: 10 },
@@ -14,7 +14,6 @@ const notificationSettings = [
 ];
 
 export default function Profile() {
-  const telegramId = useMemo(() => getTelegramUserId(), []);
   const [profile, setProfile] = useState<ApiProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +30,7 @@ export default function Profile() {
     async function load() {
       try {
         setLoading(true);
-        const data = await getProfile(telegramId);
+        const data = await getProfile();
         setProfile(data);
         setFirstName(data.firstName ?? "");
         setLastName(data.lastName ?? "");
@@ -92,7 +91,7 @@ export default function Profile() {
 
     try {
       setSaving(true);
-      const updated = await updateProfile(telegramId, {
+      const updated = await updateProfile({
         firstName: firstName.trim() || null,
         lastName: lastName.trim() || null,
         age: age.trim() ? Number(age) : null,
