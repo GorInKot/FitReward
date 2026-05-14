@@ -17,7 +17,7 @@
 
 ---
 
-## Фаза 2. Онбординг + рекомендация структуры тренировок (P0) — 🟡 ОЖИДАЕТ ПРОВЕРКИ В ПРОДЕ
+## Фаза 2. Онбординг + рекомендация структуры тренировок (P0) — ✅ ВЫПОЛНЕНО (2026-05-14)
 
 Первый раз заходит пользователь — проходит 5-шаговый wizard → система рекомендует Full-body/Upper-Lower/PPL/Split с обоснованием.
 
@@ -44,25 +44,29 @@
 
 ### Тест
 - [x] Локально: typecheck чистый, API preview/profile работают (submit упадёт без БД — это OK)
-- [ ] Прод: пройти онбординг в Telegram, проверить сохранение, проверить, что повторный вход не редиректит
+- [x] Прод: пройти онбординг в Telegram, проверить сохранение, проверить, что повторный вход не редиректит
+- [x] Bugfix: serializeProfile() вынесен в общий хелпер, чтобы `/api/onboarding` тоже возвращал `onboardingCompleted` (без него фронт вечно редиректил на онбординг)
 
 ---
 
-## Фаза 3. Каталог упражнений из публичного датасета (P1)
+## Фаза 3. Каталог упражнений из публичного датасета (P1) — 🟡 КОД ГОТОВ, ОЖИДАЕТ SEED
 
 Импорт wger.de open dataset → нормализация → таблица `ExerciseCatalog`.
 
-- [ ] Скрипт `backend/scripts/seed-exercises.ts`:
-  - [ ] Скачать wger exercise dataset (CC-BY-SA, ~800 упражнений с переводами)
-  - [ ] Маппинг полей: name, category, muscleGroups[], equipment[], instructions, imageUrl
-  - [ ] Дедупликация по name + категории
-  - [ ] Запись в `ExerciseCatalog` через `prisma.exerciseCatalog.createMany`
-- [ ] Prisma модель `ExerciseCatalog`:
-  - id, slug, name (ru/en), category (PUSH/PULL/LEGS/CORE/CARDIO), primaryMuscles[], secondaryMuscles[], equipment, difficulty, instructions, imageUrl
-- [ ] Новые enums: `MuscleGroup`, `Equipment`, `MovementCategory`
-- [ ] `GET /api/exercises?category=&equipment=&search=` — поиск с фильтрами
-- [ ] Запустить seed в проде через Render shell или `prisma db seed`
-- [ ] (опционально) Frontend: страница «Библиотека упражнений» для отладки
+- [x] Prisma модель `ExerciseCatalog` (slug, nameEn/nameRu, category, muscles, equipment, difficulty, instructions, imageUrl, source/sourceId)
+- [x] Новые enums: `MovementCategory`, `MuscleGroup`, `Equipment`, `Difficulty`
+- [x] Миграция `20260514_exercise_catalog`
+- [x] Скрипт `backend/scripts/seed-exercises.ts`:
+  - [x] Постранично выгружает `/api/v2/exerciseinfo/` (limit=100)
+  - [x] Маппинг wger categories/muscles/equipment → наши enums
+  - [x] Извлекает английское и русское название из translations (language=2 и 7)
+  - [x] HTML-stripping инструкций, slug-генерация
+  - [x] Идемпотентный `createMany({ skipDuplicates: true })`
+- [x] `GET /api/exercises?category=&equipment=&muscle=&search=&limit=&offset=` с пагинацией
+- [x] `GET /api/exercises/:slug` для одной записи
+- [x] `npm run seed:exercises -w backend` для запуска
+- [ ] Запустить seed против Neon (документация в коммите)
+- [ ] Проверить выдачу API в проде
 
 ---
 

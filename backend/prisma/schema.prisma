@@ -75,3 +75,73 @@ enum TrainingStructure {
   PUSH_PULL_LEGS
   SPLIT
 }
+
+model ExerciseCatalog {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  nameEn           String
+  nameRu           String?
+  category         MovementCategory
+  primaryMuscles   MuscleGroup[]
+  secondaryMuscles MuscleGroup[]
+  equipment        Equipment[]
+  difficulty       Difficulty       @default(BEGINNER)
+  instructions     String?
+  imageUrl         String?
+  sourceId         String?
+  source           String           @default("wger")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([category])
+  @@index([source, sourceId])
+}
+
+enum MovementCategory {
+  PUSH
+  PULL
+  LEGS
+  CORE
+  CARDIO
+  FULL_BODY_COMPOUND
+}
+
+enum MuscleGroup {
+  CHEST
+  UPPER_BACK
+  LATS
+  LOWER_BACK
+  SHOULDERS_FRONT
+  SHOULDERS_SIDE
+  SHOULDERS_REAR
+  BICEPS
+  TRICEPS
+  FOREARMS
+  QUADS
+  HAMSTRINGS
+  GLUTES
+  CALVES
+  ABS
+  OBLIQUES
+}
+
+enum Equipment {
+  BARBELL
+  DUMBBELL
+  KETTLEBELL
+  MACHINE
+  CABLE
+  BODYWEIGHT
+  RESISTANCE_BAND
+  BENCH
+  PULL_UP_BAR
+  GYMNASTIC_RINGS
+  SWISS_BALL
+  OTHER
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}

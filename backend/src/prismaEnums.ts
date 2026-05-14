@@ -46,3 +46,56 @@ export const TrainingStructure = {
   SPLIT: "SPLIT"
 } as const;
 export type TrainingStructure = (typeof TrainingStructure)[keyof typeof TrainingStructure];
+
+export const MovementCategory = {
+  PUSH: "PUSH",
+  PULL: "PULL",
+  LEGS: "LEGS",
+  CORE: "CORE",
+  CARDIO: "CARDIO",
+  FULL_BODY_COMPOUND: "FULL_BODY_COMPOUND"
+} as const;
+export type MovementCategory = (typeof MovementCategory)[keyof typeof MovementCategory];
+
+export const MuscleGroup = {
+  CHEST: "CHEST",
+  UPPER_BACK: "UPPER_BACK",
+  LATS: "LATS",
+  LOWER_BACK: "LOWER_BACK",
+  SHOULDERS_FRONT: "SHOULDERS_FRONT",
+  SHOULDERS_SIDE: "SHOULDERS_SIDE",
+  SHOULDERS_REAR: "SHOULDERS_REAR",
+  BICEPS: "BICEPS",
+  TRICEPS: "TRICEPS",
+  FOREARMS: "FOREARMS",
+  QUADS: "QUADS",
+  HAMSTRINGS: "HAMSTRINGS",
+  GLUTES: "GLUTES",
+  CALVES: "CALVES",
+  ABS: "ABS",
+  OBLIQUES: "OBLIQUES"
+} as const;
+export type MuscleGroup = (typeof MuscleGroup)[keyof typeof MuscleGroup];
+
+export const Equipment = {
+  BARBELL: "BARBELL",
+  DUMBBELL: "DUMBBELL",
+  KETTLEBELL: "KETTLEBELL",
+  MACHINE: "MACHINE",
+  CABLE: "CABLE",
+  BODYWEIGHT: "BODYWEIGHT",
+  RESISTANCE_BAND: "RESISTANCE_BAND",
+  BENCH: "BENCH",
+  PULL_UP_BAR: "PULL_UP_BAR",
+  GYMNASTIC_RINGS: "GYMNASTIC_RINGS",
+  SWISS_BALL: "SWISS_BALL",
+  OTHER: "OTHER"
+} as const;
+export type Equipment = (typeof Equipment)[keyof typeof Equipment];
+
+export const Difficulty = {
+  BEGINNER: "BEGINNER",
+  INTERMEDIATE: "INTERMEDIATE",
+  ADVANCED: "ADVANCED"
+} as const;
+export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];

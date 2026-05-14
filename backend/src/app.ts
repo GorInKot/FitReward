@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth";
 import profileRoutes from "./routes/profile";
 import onboardingRoutes from "./routes/onboarding";
+import exerciseRoutes from "./routes/exercises";
 import { requireTelegramAuth } from "./middleware/telegramAuth";
 
 const app = express();
@@ -31,6 +32,7 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", requireTelegramAuth, profileRoutes);
 app.use("/api/onboarding", requireTelegramAuth, onboardingRoutes);
+app.use("/api/exercises", requireTelegramAuth, exerciseRoutes);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {
