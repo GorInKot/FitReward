@@ -213,3 +213,104 @@ export function getCurrentProgram() {
 export function regenerateProgram() {
   return request<{ program: ApiProgram }>("/api/program/regenerate", { method: "POST" });
 }
+
+export interface ApiSetLog {
+  id: string;
+  setNumber: number;
+  weight: number | null;
+  reps: number;
+  rir: number | null;
+  completedAt: string;
+}
+
+export interface ApiSessionExercise {
+  id: string;
+  order: number;
+  slotName: string;
+  suggestedSets: number;
+  suggestedRepsLow: number;
+  suggestedRepsHigh: number;
+  suggestedRestSec: number;
+  completedAt: string | null;
+  exercise: ApiExerciseSummary & { instructions: string | null };
+  setLogs: ApiSetLog[];
+}
+
+export interface ApiWorkoutSession {
+  id: string;
+  dayName: string;
+  startedAt: string;
+  completedAt: string | null;
+  perceivedFatigue: number | null;
+  notes: string | null;
+  exercises: ApiSessionExercise[];
+}
+
+export interface ApiSessionSummary {
+  id: string;
+  dayName: string;
+  startedAt: string;
+  completedAt: string | null;
+  perceivedFatigue: number | null;
+}
+
+export function getActiveSession() {
+  return request<{ session: ApiWorkoutSession | null }>("/api/sessions/active");
+}
+
+export function getNextProgramDay() {
+  return request<{ nextDay: { id: string; name: string; order: number } | null }>(
+    "/api/sessions/program/next-day"
+  );
+}
+
+export function startSession(programDayId: string) {
+  return request<{ session: ApiWorkoutSession }>("/api/sessions", {
+    method: "POST",
+    body: JSON.stringify({ programDayId })
+  });
+}
+
+export function logSet(
+  sessionId: string,
+  payload: {
+    sessionExerciseId: string;
+    setNumber: number;
+    reps: number;
+    weight: number | null;
+    rir: number | null;
+  }
+) {
+  return request<{ set: ApiSetLog }>(`/api/sessions/${sessionId}/sets`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteSet(sessionId: string, setId: string) {
+  return request<void>(`/api/sessions/${sessionId}/sets/${setId}`, { method: "DELETE" });
+}
+
+export function completeExercise(sessionId: string, sessionExerciseId: string) {
+  return request<{ sessionExercise: ApiSessionExercise }>(
+    `/api/sessions/${sessionId}/exercises/complete`,
+    {
+      method: "POST",
+      body: JSON.stringify({ sessionExerciseId })
+    }
+  );
+}
+
+export function completeSession(
+  sessionId: string,
+  payload: { perceivedFatigue?: number | null; notes?: string | null }
+) {
+  return request<{ session: ApiWorkoutSession }>(`/api/sessions/${sessionId}/complete`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function abandonSession(sessionId: string) {
+  return request<void>(`/api/sessions/${sessionId}`, { method: "DELETE" });
+}

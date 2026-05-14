@@ -34,6 +34,7 @@ model User {
   onboardingCompletedAt DateTime?
 
   programs Program[]
+  sessions WorkoutSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,7 +96,8 @@ model ExerciseCatalog {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  programSlots ProgramExerciseSlot[]
+  programSlots     ProgramExerciseSlot[]
+  sessionExercises SessionExercise[]
 
   @@index([category])
   @@index([source, sourceId])
@@ -126,6 +128,7 @@ model ProgramDay {
   order     Int
   name      String
   exercises ProgramExerciseSlot[]
+  sessions  WorkoutSession[]
 
   @@index([programId])
 }
@@ -193,4 +196,52 @@ enum Difficulty {
   BEGINNER
   INTERMEDIATE
   ADVANCED
+}
+
+model WorkoutSession {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programDayId     String?
+  programDay       ProgramDay?       @relation(fields: [programDayId], references: [id], onDelete: SetNull)
+  dayName          String
+  startedAt        DateTime          @default(now())
+  completedAt      DateTime?
+  perceivedFatigue Int?
+  notes            String?
+  exercises        SessionExercise[]
+
+  @@index([userId, completedAt])
+  @@index([userId, startedAt])
+}
+
+model SessionExercise {
+  id                String          @id @default(cuid())
+  sessionId         String
+  session           WorkoutSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseCatalogId String
+  exercise          ExerciseCatalog @relation(fields: [exerciseCatalogId], references: [id])
+  order             Int
+  slotName          String
+  suggestedSets     Int
+  suggestedRepsLow  Int
+  suggestedRepsHigh Int
+  suggestedRestSec  Int
+  completedAt       DateTime?
+  setLogs           SetLog[]
+
+  @@index([sessionId])
+}
+
+model SetLog {
+  id                String          @id @default(cuid())
+  sessionExerciseId String
+  sessionExercise   SessionExercise @relation(fields: [sessionExerciseId], references: [id], onDelete: Cascade)
+  setNumber         Int
+  weight            Float?
+  reps              Int
+  rir               Int?
+  completedAt       DateTime        @default(now())
+
+  @@index([sessionExerciseId])
 }

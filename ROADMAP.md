@@ -70,7 +70,7 @@
 
 ---
 
-## Фаза 4. Генератор программы из шаблонов (P1) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ПРОДА
+## Фаза 4. Генератор программы из шаблонов (P1) — ✅ ВЫПОЛНЕНО (2026-05-14)
 
 На основе `recommendedStructure` собираем недельный план: список тренировочных дней с подобранными упражнениями.
 
@@ -99,29 +99,40 @@
 - [x] Кнопка «Пересоздать программу»
 
 ### Тест
-- [ ] Прод: после онбординга открыть «Планы» → должна быть программа
-- [ ] Кнопка «Пересоздать» работает
+- [x] Прод: после онбординга открыть «Планы» → должна быть программа
+- [x] Кнопка «Пересоздать» работает
 
 ---
 
-## Фаза 5. Логирование тренировки (P1)
+## Фаза 5. Логирование тренировки (P1) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ПРОДА
 
 Запуск тренировки → лог сетов с весом/повторениями/RIR → завершение.
 
-- [ ] Prisma модели:
-  - `WorkoutSession` (id, userId, programDayId, startedAt, completedAt, perceivedFatigue)
-  - `SetLog` (id, sessionId, exerciseCatalogId, setNumber, weight, reps, rir, completedAt)
-- [ ] Эндпоинты:
-  - `POST /api/sessions` — создать сессию из ProgramDay (клонирует упражнения и предлагаемые сеты)
-  - `GET /api/sessions/active` — текущая активная сессия
-  - `POST /api/sessions/:id/sets` — добавить лог сета
-  - `PATCH /api/sessions/:id` — завершить
-- [ ] Frontend: переписать `Workout.tsx`:
-  - [ ] Список упражнений из активной сессии
-  - [ ] Карточка упражнения: предложенные значения + поля для фактических reps/weight + быстрый выбор RIR (0/1/2/3+/слишком легко)
-  - [ ] Кнопка «Следующий сет» → автоматически переключает
-  - [ ] Завершение → POST со sliderom perceivedFatigue
-- [ ] Bot: отправлять напоминание о следующей тренировке через `bot/src/services/notifications.ts`
+### Backend
+- [x] Prisma модели: `WorkoutSession`, `SessionExercise` (snapshot of slot), `SetLog`
+- [x] Миграция `20260514_workout_sessions`
+- [x] `POST /api/sessions` (start from programDayId, snapshots exercises)
+- [x] `GET /api/sessions/active` / `GET /api/sessions` / `GET /api/sessions/:id`
+- [x] `POST /api/sessions/:id/sets` (Zod-валидация, проверка владельца)
+- [x] `DELETE /api/sessions/:id/sets/:setId` (удалить ошибочный сет)
+- [x] `POST /api/sessions/:id/exercises/complete` (отметить упражнение завершённым)
+- [x] `PATCH /api/sessions/:id/complete` (perceivedFatigue 1–10, notes)
+- [x] `DELETE /api/sessions/:id` (abandon active session)
+- [x] `GET /api/sessions/program/next-day` (следующий день на основе истории)
+
+### Frontend
+- [x] API-клиент `getActiveSession`, `getNextProgramDay`, `startSession`, `logSet`, `deleteSet`, `completeExercise`, `completeSession`, `abandonSession`
+- [x] Полная переписка `Workout.tsx`:
+  - [x] Состояние «нет активной сессии»: показывает следующий день + кнопка «Начать»
+  - [x] Состояние «активная сессия»: прогресс-бар, карточки упражнений (collapsible)
+  - [x] Внутри упражнения: список залогированных сетов с возможностью удалить + форма «вес / повторения / RIR»
+  - [x] Кнопка «Завершить упр.» помечает упражнение выполненным
+  - [x] Завершение сессии: экран «оцени усталость 1–10» → PATCH → редирект на «Прогресс»
+  - [x] Кнопка «Прервать» (с confirm) удаляет сессию
+- [ ] Bot: напоминания о следующей тренировке (вынесено в Фазу 11)
+
+### Тест
+- [ ] Прод: открыть «Тренировка» → начать сессию → залогать пару сетов → завершить → проверить, что сессия исчезла из активных
 
 ---
 
