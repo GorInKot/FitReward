@@ -9,6 +9,7 @@ import {
 } from "../prismaEnums";
 import { prisma } from "../utils/database";
 import { recommendTrainingStructure } from "../services/trainingRecommendation";
+import { PROFILE_SELECT, serializeProfile } from "../utils/profileSerializer";
 
 const router = Router();
 
@@ -65,22 +66,11 @@ router.post("/", async (req, res) => {
         recommendationReasons: recommendation.reasons,
         onboardingCompletedAt: new Date()
       },
-      select: {
-        id: true,
-        telegramId: true,
-        primaryGoal: true,
-        experienceLevel: true,
-        trainingDaysPerWeek: true,
-        trainingEnvironment: true,
-        limitations: true,
-        recommendedStructure: true,
-        recommendationReasons: true,
-        onboardingCompletedAt: true
-      }
+      select: PROFILE_SELECT
     });
 
     return res.json({
-      profile: user,
+      profile: serializeProfile(user),
       recommendation: {
         suggestedStructure: recommendation.structure,
         finalStructure,

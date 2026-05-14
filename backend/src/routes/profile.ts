@@ -1,13 +1,11 @@
 import { Router } from "express";
-import {
-  ExperienceLevel,
-  Limitation,
-  PrimaryGoal,
-  TrainingEnvironment,
-  TrainingStructure
-} from "../prismaEnums";
 import { z } from "zod";
 import { prisma } from "../utils/database";
+import {
+  PROFILE_SELECT,
+  SerializedProfile,
+  serializeProfile
+} from "../utils/profileSerializer";
 
 const router = Router();
 
@@ -20,30 +18,9 @@ const updateProfileSchema = z.object({
   height: z.number().int().positive().max(300).nullable().optional()
 });
 
-type ProfilePayload = {
-  id: string;
-  telegramId: string;
-  firstName: string | null;
-  lastName: string | null;
-  username: string | null;
-  isPremium: boolean;
-  age: number | null;
-  weight: number | null;
-  height: number | null;
-  primaryGoal: PrimaryGoal | null;
-  experienceLevel: ExperienceLevel | null;
-  trainingDaysPerWeek: number | null;
-  trainingEnvironment: TrainingEnvironment | null;
-  limitations: Limitation[];
-  recommendedStructure: TrainingStructure | null;
-  recommendationReasons: string[];
-  onboardingCompletedAt: string | null;
-  onboardingCompleted: boolean;
-};
+const fallbackProfiles = new Map<string, SerializedProfile>();
 
-const fallbackProfiles = new Map<string, ProfilePayload>();
-
-function emptyProfile(telegramId: string): ProfilePayload {
+function emptyProfile(telegramId: string): SerializedProfile {
   return {
     id: `local_${telegramId}`,
     telegramId,
@@ -66,7 +43,7 @@ function emptyProfile(telegramId: string): ProfilePayload {
   };
 }
 
-function getFallbackProfile(telegramId: string): ProfilePayload {
+function getFallbackProfile(telegramId: string): SerializedProfile {
   const current = fallbackProfiles.get(telegramId);
   if (current) {
     return current;
@@ -91,54 +68,6 @@ function shouldUseMemoryFallback(error: unknown): boolean {
   );
 }
 
-const PROFILE_SELECT = {
-  id: true,
-  telegramId: true,
-  firstName: true,
-  lastName: true,
-  username: true,
-  isPremium: true,
-  age: true,
-  weight: true,
-  height: true,
-  primaryGoal: true,
-  experienceLevel: true,
-  trainingDaysPerWeek: true,
-  trainingEnvironment: true,
-  limitations: true,
-  recommendedStructure: true,
-  recommendationReasons: true,
-  onboardingCompletedAt: true
-} as const;
-
-type PrismaUser = {
-  id: string;
-  telegramId: string;
-  firstName: string | null;
-  lastName: string | null;
-  username: string | null;
-  isPremium: boolean;
-  age: number | null;
-  weight: number | null;
-  height: number | null;
-  primaryGoal: PrimaryGoal | null;
-  experienceLevel: ExperienceLevel | null;
-  trainingDaysPerWeek: number | null;
-  trainingEnvironment: TrainingEnvironment | null;
-  limitations: Limitation[];
-  recommendedStructure: TrainingStructure | null;
-  recommendationReasons: string[];
-  onboardingCompletedAt: Date | null;
-};
-
-function serialize(user: PrismaUser): ProfilePayload {
-  return {
-    ...user,
-    onboardingCompletedAt: user.onboardingCompletedAt ? user.onboardingCompletedAt.toISOString() : null,
-    onboardingCompleted: Boolean(user.onboardingCompletedAt)
-  };
-}
-
 router.get("/me", async (req, res) => {
   const telegramId = req.telegramId;
   if (!telegramId) {
@@ -157,7 +86,7 @@ router.get("/me", async (req, res) => {
         create: { telegramId },
         select: PROFILE_SELECT
       });
-      return res.json(serialize(user));
+      return res.json(serializeProfile(user));
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");
@@ -196,7 +125,7 @@ router.put("/me", async (req, res) => {
         create: { telegramId, ...bodyParsed.data },
         select: PROFILE_SELECT
       });
-      return res.json(serialize(user));
+      return res.json(serializeProfile(user));
     } catch (error) {
       if (shouldUseMemoryFallback(error)) {
         console.warn("[profile] Database unavailable, using in-memory profile store");

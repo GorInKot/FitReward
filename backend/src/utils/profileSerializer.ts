@@ -1,0 +1,60 @@
+import {
+  ExperienceLevel,
+  Limitation,
+  PrimaryGoal,
+  TrainingEnvironment,
+  TrainingStructure
+} from "../prismaEnums";
+
+export const PROFILE_SELECT = {
+  id: true,
+  telegramId: true,
+  firstName: true,
+  lastName: true,
+  username: true,
+  isPremium: true,
+  age: true,
+  weight: true,
+  height: true,
+  primaryGoal: true,
+  experienceLevel: true,
+  trainingDaysPerWeek: true,
+  trainingEnvironment: true,
+  limitations: true,
+  recommendedStructure: true,
+  recommendationReasons: true,
+  onboardingCompletedAt: true
+} as const;
+
+export type PrismaUserRow = {
+  id: string;
+  telegramId: string;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  isPremium: boolean;
+  age: number | null;
+  weight: number | null;
+  height: number | null;
+  primaryGoal: PrimaryGoal | null;
+  experienceLevel: ExperienceLevel | null;
+  trainingDaysPerWeek: number | null;
+  trainingEnvironment: TrainingEnvironment | null;
+  limitations: Limitation[];
+  recommendedStructure: TrainingStructure | null;
+  recommendationReasons: string[];
+  onboardingCompletedAt: Date | null;
+};
+
+export type SerializedProfile = Omit<PrismaUserRow, "onboardingCompletedAt"> & {
+  onboardingCompletedAt: string | null;
+  onboardingCompleted: boolean;
+};
+
+export function serializeProfile(user: PrismaUserRow): SerializedProfile {
+  return {
+    ...user,
+    onboardingCompletedAt: user.onboardingCompletedAt ? user.onboardingCompletedAt.toISOString() : null,
+    onboardingCompleted: Boolean(user.onboardingCompletedAt)
+  };
+}
