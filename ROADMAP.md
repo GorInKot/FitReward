@@ -70,22 +70,37 @@
 
 ---
 
-## Фаза 4. Генератор программы из шаблонов (P1)
+## Фаза 4. Генератор программы из шаблонов (P1) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ПРОДА
 
 На основе `recommendedStructure` собираем недельный план: список тренировочных дней с подобранными упражнениями.
 
-- [ ] Prisma модели:
-  - `ProgramTemplate` (стандартные планы Full-body/UL/PPL) — захардкожены через seed
-  - `Program` (инстанс программы для конкретного юзера, активна одна за раз)
-  - `ProgramDay` (день недели + список упражнений из каталога + предлагаемые сеты/повторения)
-- [ ] Логика генерации:
-  - [ ] Подбор упражнений с учётом `trainingEnvironment` (фильтр по equipment)
-  - [ ] Подбор с учётом `limitations` (исключить движения, нагружающие проблемные зоны)
-  - [ ] Базовая прогрессия: для новичков 3×8 на компаундах, для среднего 4×6–10 и т.д.
-- [ ] `POST /api/program/generate` — после онбординга вызывает генератор, сохраняет активную программу
-- [ ] `GET /api/program/current` — возвращает активную программу с днями и упражнениями
-- [ ] `POST /api/program/regenerate` — пересоздать (например, поменялся профиль)
-- [ ] Frontend: страница «План» показывает реальный план вместо моков
+### Backend
+- [x] Prisma модели: `Program`, `ProgramDay`, `ProgramExerciseSlot`, enum `ProgramStatus`
+- [x] Миграция `20260514_program_tables`
+- [x] Шаблоны слотов на структуру (`services/programTemplates.ts`): Full-body, Upper, Lower, Push, Pull, Legs, Chest, Back, Shoulders, Arms
+- [x] Goal-based рецептура `services/prescription.ts` (compound vs isolation, под цель)
+- [x] Адаптивное число упражнений от опыта (4/5/6/7)
+- [x] Фильтры окружения и ограничений `services/equipmentFilters.ts`:
+  - Маппинг GYM/HOME/HOME_MINIMAL/BODYWEIGHT → доступное оборудование
+  - LOWER_BACK ограничение → исключает упражнения с primaryMuscle=LOWER_BACK
+  - POST_INJURY → ограничивает difficulty до BEGINNER
+  - SHOULDERS/KNEES — задокументировано как known limitation (требует тэгов на упражнениях)
+- [x] Генератор `services/programGenerator.ts`:
+  - Цикл шаблонов дней под `trainingDaysPerWeek`
+  - Скоринг кандидатов по difficulty + equipment + match с primaryMuscle
+  - Дедупликация slugs внутри программы (разные упражнения в разные дни)
+  - Транзакционное сохранение с архивированием предыдущей программы
+- [x] `POST /api/program/generate`, `POST /api/program/regenerate`, `GET /api/program/current`
+- [x] Авто-генерация программы после успешного онбординга (best-effort, не блокирует ответ)
+
+### Frontend
+- [x] Расширены API-типы (Program/Day/Slot)
+- [x] `Plans.tsx` переписан: показывает структуру, дни (tabs), упражнения с подсказками sets × reps + отдых
+- [x] Кнопка «Пересоздать программу»
+
+### Тест
+- [ ] Прод: после онбординга открыть «Планы» → должна быть программа
+- [ ] Кнопка «Пересоздать» работает
 
 ---
 

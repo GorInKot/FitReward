@@ -9,6 +9,7 @@ import {
 } from "../prismaEnums";
 import { prisma } from "../utils/database";
 import { recommendTrainingStructure } from "../services/trainingRecommendation";
+import { generateAndSaveProgram } from "../services/programGenerator";
 import { PROFILE_SELECT, serializeProfile } from "../utils/profileSerializer";
 
 const router = Router();
@@ -69,6 +70,25 @@ router.post("/", async (req, res) => {
       select: PROFILE_SELECT
     });
 
+    // Auto-generate the first program so the user lands on a populated Plans
+    // page after onboarding. Failure here shouldn't fail the whole onboarding
+    // — the user can hit "Regenerate" manually.
+    let programGenerationError: string | null = null;
+    try {
+      await generateAndSaveProgram({
+        userId: user.id,
+        primaryGoal: input.primaryGoal,
+        experienceLevel: input.experienceLevel,
+        trainingDaysPerWeek: input.trainingDaysPerWeek,
+        trainingEnvironment: input.trainingEnvironment,
+        limitations: input.limitations,
+        structure: finalStructure
+      });
+    } catch (error) {
+      programGenerationError = String(error);
+      console.error("[onboarding] Program generation failed", error);
+    }
+
     return res.json({
       profile: serializeProfile(user),
       recommendation: {
@@ -76,7 +96,8 @@ router.post("/", async (req, res) => {
         finalStructure,
         reasons: recommendation.reasons,
         overridden: finalStructure !== recommendation.structure
-      }
+      },
+      programGenerationError
     });
   } catch (error) {
     return res.status(500).json({ error: "Failed to save onboarding", details: String(error) });

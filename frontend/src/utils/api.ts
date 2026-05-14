@@ -124,3 +124,92 @@ export function previewRecommendation(experienceLevel: ExperienceLevel, training
     body: JSON.stringify({ experienceLevel, trainingDaysPerWeek })
   });
 }
+
+export type MovementCategory =
+  | "PUSH"
+  | "PULL"
+  | "LEGS"
+  | "CORE"
+  | "CARDIO"
+  | "FULL_BODY_COMPOUND";
+
+export type MuscleGroup =
+  | "CHEST"
+  | "UPPER_BACK"
+  | "LATS"
+  | "LOWER_BACK"
+  | "SHOULDERS_FRONT"
+  | "SHOULDERS_SIDE"
+  | "SHOULDERS_REAR"
+  | "BICEPS"
+  | "TRICEPS"
+  | "FOREARMS"
+  | "QUADS"
+  | "HAMSTRINGS"
+  | "GLUTES"
+  | "CALVES"
+  | "ABS"
+  | "OBLIQUES";
+
+export type EquipmentKind =
+  | "BARBELL"
+  | "DUMBBELL"
+  | "KETTLEBELL"
+  | "MACHINE"
+  | "CABLE"
+  | "BODYWEIGHT"
+  | "RESISTANCE_BAND"
+  | "BENCH"
+  | "PULL_UP_BAR"
+  | "GYMNASTIC_RINGS"
+  | "SWISS_BALL"
+  | "OTHER";
+
+export type Difficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+
+export interface ApiExerciseSummary {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameRu: string | null;
+  category: MovementCategory;
+  primaryMuscles: MuscleGroup[];
+  equipment: EquipmentKind[];
+  difficulty: Difficulty;
+  imageUrl: string | null;
+}
+
+export interface ApiProgramExerciseSlot {
+  id: string;
+  order: number;
+  slotName: string;
+  suggestedSets: number;
+  suggestedRepsLow: number;
+  suggestedRepsHigh: number;
+  suggestedRestSec: number;
+  exercise: ApiExerciseSummary;
+}
+
+export interface ApiProgramDay {
+  id: string;
+  order: number;
+  name: string;
+  exercises: ApiProgramExerciseSlot[];
+}
+
+export interface ApiProgram {
+  id: string;
+  structure: TrainingStructure;
+  status: "ACTIVE" | "ARCHIVED";
+  generatedAt: string;
+  archivedAt: string | null;
+  days: ApiProgramDay[];
+}
+
+export function getCurrentProgram() {
+  return request<{ program: ApiProgram | null }>("/api/program/current");
+}
+
+export function regenerateProgram() {
+  return request<{ program: ApiProgram }>("/api/program/regenerate", { method: "POST" });
+}

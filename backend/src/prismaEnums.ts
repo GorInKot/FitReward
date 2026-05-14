@@ -99,3 +99,9 @@ export const Difficulty = {
   ADVANCED: "ADVANCED"
 } as const;
 export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
+
+export const ProgramStatus = {
+  ACTIVE: "ACTIVE",
+  ARCHIVED: "ARCHIVED"
+} as const;
+export type ProgramStatus = (typeof ProgramStatus)[keyof typeof ProgramStatus];
