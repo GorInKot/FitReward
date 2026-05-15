@@ -294,6 +294,13 @@ export const en = {
     kg: "kg",
     reps: "reps"
   },
+  fatigue: {
+    bannerTitle: "You look fatigued",
+    bannerHint: "Consider a deload week or an extra rest day.",
+    high_fatigue_streak: "Your last {n} sessions all rated 8+ on fatigue",
+    rir_dropping: "On '{slot}' the same weight is feeling harder — RIR keeps dropping",
+    slotFallback: "one of the exercises"
+  },
   reps: {
     range: "{low}–{high}",
     single: "{value}"

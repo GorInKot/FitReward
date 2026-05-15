@@ -60,6 +60,27 @@ export default function Home() {
         )}
       </div>
 
+      {dashboard?.fatigue.status === "elevated" && (
+        <article className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <h3 className="text-sm font-semibold text-amber-200">{t("fatigue.bannerTitle")}</h3>
+          <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+            {dashboard.fatigue.reasons.map((reason, i) => {
+              const params: Record<string, string | number> = { ...(reason.params ?? {}) };
+              if (typeof params.slot === "string") {
+                params.slot = t(params.slot);
+              }
+              return (
+                <li key={i} className="flex gap-2">
+                  <span>·</span>
+                  <span>{t(reason.key, params)}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-xs text-amber-200/80">{t("fatigue.bannerHint")}</p>
+        </article>
+      )}
+
       {dashboard && (
         <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
           <h3 className="text-sm font-semibold text-slate-300">{t("home.weekTitle")}</h3>

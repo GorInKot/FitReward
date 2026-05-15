@@ -390,11 +390,22 @@ export interface ApiWeightPoint {
   weight: number;
 }
 
+export interface ApiFatigueReason {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
+export interface ApiFatigueStatus {
+  status: "ok" | "elevated";
+  reasons: ApiFatigueReason[];
+}
+
 export interface ApiDashboard {
   stats: ApiDashboardStats;
   weightHistory: ApiWeightPoint[];
   calendar: ApiCalendarDay[];
   personalRecords: ApiPersonalRecord[];
+  fatigue: ApiFatigueStatus;
 }
 
 export function getDashboard() {

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../utils/database";
+import { RecentSession, detectFatigue } from "../services/fatigueDetector";
 
 const router = Router();
 
@@ -150,6 +151,44 @@ router.get("/", async (req, res) => {
       .sort((a, b) => b.weight - a.weight)
       .slice(0, 8);
 
+    // Fatigue detection: pull last 5 completed sessions with their best sets
+    // per slot, then run the rules.
+    const recentForFatigue = await prisma.workoutSession.findMany({
+      where: { userId: auth.userId, completedAt: { not: null } },
+      orderBy: { completedAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        completedAt: true,
+        perceivedFatigue: true,
+        exercises: {
+          select: {
+            slotName: true,
+            setLogs: { select: { weight: true, reps: true, rir: true } }
+          }
+        }
+      }
+    });
+    const recentSessions: RecentSession[] = recentForFatigue.map((s) => ({
+      id: s.id,
+      completedAt: s.completedAt!,
+      perceivedFatigue: s.perceivedFatigue,
+      bestSets: s.exercises.map((ex) => {
+        const best = [...ex.setLogs].sort((a, b) => {
+          const aw = a.weight ?? -1;
+          const bw = b.weight ?? -1;
+          if (bw !== aw) return bw - aw;
+          return b.reps - a.reps;
+        })[0];
+        return {
+          slotName: ex.slotName,
+          weight: best?.weight ?? null,
+          rir: best?.rir ?? null
+        };
+      })
+    }));
+    const fatigue = detectFatigue(recentSessions);
+
     return res.json({
       stats: {
         completedSessions,
@@ -163,7 +202,8 @@ router.get("/", async (req, res) => {
         weight: m.weight
       })),
       calendar,
-      personalRecords
+      personalRecords,
+      fatigue
     });
   } catch (error) {
     return res.status(500).json({ error: "Failed to load dashboard", details: String(error) });

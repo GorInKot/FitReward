@@ -294,6 +294,13 @@ export const ru = {
     kg: "кг",
     reps: "повт"
   },
+  fatigue: {
+    bannerTitle: "Похоже, накопилась усталость",
+    bannerHint: "Подумай о неделе с пониженной нагрузкой или дополнительном дне отдыха.",
+    high_fatigue_streak: "Последние {n} тренировки оценены на 8+ по усталости",
+    rir_dropping: "В упражнении «{slot}» становится тяжелее тот же вес: RIR падает",
+    slotFallback: "одно из упражнений"
+  },
   reps: {
     range: "{low}–{high}",
     single: "{value}"
