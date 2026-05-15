@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../utils/database";
+import { checkAndUnlockAchievements } from "../services/achievementEngine";
 
 const router = Router();
 
@@ -19,6 +20,10 @@ router.get("/", async (req, res) => {
   const auth = await getUserOr401(req.telegramId);
   if (auth.kind === "err") return res.status(auth.status).json({ error: auth.message });
   try {
+    // Backfill: re-run rules in case the user qualifies from data created
+    // before this endpoint existed, or events were missed. Idempotent.
+    await checkAndUnlockAchievements(auth.userId);
+
     const achievements = await prisma.achievement.findMany({
       include: {
         userAchievements: {
