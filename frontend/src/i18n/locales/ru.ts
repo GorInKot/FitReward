@@ -267,5 +267,20 @@ export const ru = {
   reps: {
     range: "{low}–{high}",
     single: "{value}"
+  },
+  progression: {
+    lastTime: "Прошлая: {weight}{reps}{rir}",
+    lastNoWeight: "{reps}",
+    lastWithRir: " · RIR {rir}",
+    suggestionHeader: "Цель сегодня",
+    suggestionWeightReps: "{weight} × {reps}",
+    suggestionReps: "{reps} повторений",
+    first_time: "Первая тренировка — стартуй с лёгкого",
+    repeat_last: "Повтори прошлый результат",
+    hold: "Держим вес (RIR в зоне)",
+    add_weight: "RIR был большим — добавь немного веса",
+    push_reps: "RIR близко к нулю — добавь 1 повтор",
+    double_progression: "Дошёл до верха диапазона — небольшой шаг вверх по весу",
+    too_easy: "Слишком легко прошлый раз — серьёзный шаг по весу"
   }
 };

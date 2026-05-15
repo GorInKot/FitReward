@@ -267,5 +267,20 @@ export const en = {
   reps: {
     range: "{low}–{high}",
     single: "{value}"
+  },
+  progression: {
+    lastTime: "Last: {weight}{reps}{rir}",
+    lastNoWeight: "{reps}",
+    lastWithRir: " · RIR {rir}",
+    suggestionHeader: "Today's target",
+    suggestionWeightReps: "{weight} × {reps}",
+    suggestionReps: "{reps} reps",
+    first_time: "First time — start light",
+    repeat_last: "Repeat last performance",
+    hold: "Hold the weight (RIR is on target)",
+    add_weight: "RIR was high — add a bit of weight",
+    push_reps: "RIR was very low — add one rep",
+    double_progression: "Hit top of the range — small weight bump",
+    too_easy: "Was too easy last time — meaningful weight bump"
   }
 };

@@ -312,8 +312,15 @@ function ExerciseCard({
   t: TranslateFn;
 }) {
   const [expanded, setExpanded] = useState(!exercise.completedAt);
-  const [weight, setWeight] = useState("");
-  const [reps, setReps] = useState("");
+  const initialWeight =
+    exercise.suggestion?.suggestedWeight !== undefined && exercise.suggestion?.suggestedWeight !== null
+      ? String(exercise.suggestion.suggestedWeight)
+      : exercise.previous?.weight !== undefined && exercise.previous?.weight !== null
+        ? String(exercise.previous.weight)
+        : "";
+  const initialReps = exercise.suggestion ? String(exercise.suggestion.suggestedReps) : "";
+  const [weight, setWeight] = useState(initialWeight);
+  const [reps, setReps] = useState(initialReps);
   const [rir, setRir] = useState<number | null>(2);
   const [submitting, setSubmitting] = useState(false);
 
@@ -372,6 +379,36 @@ function ExerciseCard({
 
       {expanded && (
         <div className="mt-3 space-y-3">
+          {(exercise.previous || exercise.suggestion) && exercise.setLogs.length === 0 && (
+            <div className="rounded-xl bg-slate-800/50 p-3 text-xs">
+              {exercise.previous && (
+                <p className="text-slate-400">
+                  {t("progression.lastTime", {
+                    weight: exercise.previous.weight !== null ? `${exercise.previous.weight} × ` : "",
+                    reps: exercise.previous.reps,
+                    rir:
+                      exercise.previous.rir !== null
+                        ? t("progression.lastWithRir", { rir: exercise.previous.rir })
+                        : ""
+                  })}
+                </p>
+              )}
+              {exercise.suggestion && (
+                <>
+                  <p className="mt-1 font-medium text-emerald-300">
+                    {t("progression.suggestionHeader")}:{" "}
+                    {exercise.suggestion.suggestedWeight !== null
+                      ? t("progression.suggestionWeightReps", {
+                          weight: exercise.suggestion.suggestedWeight,
+                          reps: exercise.suggestion.suggestedReps
+                        })
+                      : t("progression.suggestionReps", { reps: exercise.suggestion.suggestedReps })}
+                  </p>
+                  <p className="mt-0.5 text-slate-500">{t(exercise.suggestion.rationaleKey)}</p>
+                </>
+              )}
+            </div>
+          )}
           {exercise.setLogs.length > 0 && (
             <ul className="space-y-1">
               {exercise.setLogs.map((set) => (

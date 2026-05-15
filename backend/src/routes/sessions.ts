@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../utils/database";
+import { nextSuggestion } from "../services/progressionEngine";
 
 const router = Router();
 
@@ -28,6 +29,108 @@ const sessionInclude = {
     }
   }
 };
+
+interface PreviousBest {
+  weight: number | null;
+  reps: number;
+  rir: number | null;
+  completedAt: string;
+}
+
+interface ProgressionInfo {
+  previous: PreviousBest | null;
+  suggestion: {
+    suggestedWeight: number | null;
+    suggestedReps: number;
+    rationaleKey: string;
+  } | null;
+}
+
+/**
+ * For each exercise in the session, look up the user's most recent completed
+ * session containing the same exerciseCatalogId. Take the heaviest set
+ * (max weight, then max reps) and compute a progression suggestion.
+ *
+ * Excludes the current session from the lookup so a freshly-started session
+ * doesn't reference itself.
+ */
+async function buildProgressionMap(
+  userId: string,
+  exerciseCatalogIds: string[],
+  excludeSessionId: string
+): Promise<Map<string, ProgressionInfo>> {
+  const result = new Map<string, ProgressionInfo>();
+  if (exerciseCatalogIds.length === 0) return result;
+
+  // One query per exercise — N is small (5-8 per session). Keeps logic simple.
+  await Promise.all(
+    exerciseCatalogIds.map(async (catalogId) => {
+      const lastExercise = await prisma.sessionExercise.findFirst({
+        where: {
+          exerciseCatalogId: catalogId,
+          session: {
+            userId,
+            completedAt: { not: null },
+            id: { not: excludeSessionId }
+          }
+        },
+        orderBy: {
+          session: { completedAt: "desc" }
+        },
+        include: {
+          setLogs: true,
+          session: { select: { completedAt: true } }
+        }
+      });
+
+      if (!lastExercise || lastExercise.setLogs.length === 0) {
+        result.set(catalogId, { previous: null, suggestion: null });
+        return;
+      }
+
+      // Pick heaviest set (max weight, ties broken by reps).
+      const best = [...lastExercise.setLogs].sort((a, b) => {
+        const aw = a.weight ?? -1;
+        const bw = b.weight ?? -1;
+        if (bw !== aw) return bw - aw;
+        return b.reps - a.reps;
+      })[0];
+
+      const previous: PreviousBest = {
+        weight: best.weight,
+        reps: best.reps,
+        rir: best.rir,
+        completedAt: lastExercise.session.completedAt!.toISOString()
+      };
+
+      const suggestion = nextSuggestion({
+        lastWeight: best.weight,
+        lastReps: best.reps,
+        lastRir: best.rir,
+        targetRepsLow: lastExercise.suggestedRepsLow,
+        targetRepsHigh: lastExercise.suggestedRepsHigh
+      });
+
+      result.set(catalogId, { previous, suggestion });
+    })
+  );
+
+  return result;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function attachProgression(session: any, userId: string): Promise<any> {
+  if (!session) return session;
+  const catalogIds: string[] = session.exercises.map((e: { exerciseCatalogId: string }) => e.exerciseCatalogId);
+  const map = await buildProgressionMap(userId, catalogIds, session.id);
+  return {
+    ...session,
+    exercises: session.exercises.map((e: { exerciseCatalogId: string }) => ({
+      ...e,
+      ...(map.get(e.exerciseCatalogId) ?? { previous: null, suggestion: null })
+    }))
+  };
+}
 
 type AuthResult =
   | { kind: "ok"; userId: string }
@@ -58,7 +161,7 @@ router.get("/active", async (req, res) => {
       orderBy: { startedAt: "desc" },
       include: sessionInclude
     });
-    return res.json({ session });
+    return res.json({ session: await attachProgression(session, auth.userId) });
   } catch (error) {
     return res.status(500).json({ error: "Failed to load active session", details: String(error) });
   }
@@ -101,7 +204,7 @@ router.get("/:id", async (req, res) => {
     if (!session) {
       return res.status(404).json({ error: "Session not found" });
     }
-    return res.json({ session });
+    return res.json({ session: await attachProgression(session, auth.userId) });
   } catch (error) {
     return res.status(500).json({ error: "Failed to load session", details: String(error) });
   }
@@ -167,7 +270,7 @@ router.post("/", async (req, res) => {
       include: sessionInclude
     });
 
-    return res.status(201).json({ session });
+    return res.status(201).json({ session: await attachProgression(session, auth.userId) });
   } catch (error) {
     return res.status(500).json({ error: "Failed to start session", details: String(error) });
   }

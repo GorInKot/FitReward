@@ -227,6 +227,19 @@ export interface ApiSetLog {
   completedAt: string;
 }
 
+export interface ApiPreviousBest {
+  weight: number | null;
+  reps: number;
+  rir: number | null;
+  completedAt: string;
+}
+
+export interface ApiSuggestion {
+  suggestedWeight: number | null;
+  suggestedReps: number;
+  rationaleKey: string;
+}
+
 export interface ApiSessionExercise {
   id: string;
   order: number;
@@ -238,6 +251,8 @@ export interface ApiSessionExercise {
   completedAt: string | null;
   exercise: ApiExerciseSummary & { instructions: string | null };
   setLogs: ApiSetLog[];
+  previous: ApiPreviousBest | null;
+  suggestion: ApiSuggestion | null;
 }
 
 export interface ApiWorkoutSession {
