@@ -53,7 +53,6 @@ router.post("/", async (req, res) => {
         trainingEnvironment: input.trainingEnvironment,
         limitations: input.limitations,
         recommendedStructure: finalStructure,
-        recommendationReasons: recommendation.reasons,
         onboardingCompletedAt: new Date()
       },
       create: {
@@ -64,7 +63,6 @@ router.post("/", async (req, res) => {
         trainingEnvironment: input.trainingEnvironment,
         limitations: input.limitations,
         recommendedStructure: finalStructure,
-        recommendationReasons: recommendation.reasons,
         onboardingCompletedAt: new Date()
       },
       select: PROFILE_SELECT

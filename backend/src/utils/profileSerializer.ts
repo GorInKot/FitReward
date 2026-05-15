@@ -22,7 +22,6 @@ export const PROFILE_SELECT = {
   trainingEnvironment: true,
   limitations: true,
   recommendedStructure: true,
-  recommendationReasons: true,
   onboardingCompletedAt: true
 } as const;
 
@@ -42,7 +41,6 @@ export type PrismaUserRow = {
   trainingEnvironment: TrainingEnvironment | null;
   limitations: Limitation[];
   recommendedStructure: TrainingStructure | null;
-  recommendationReasons: string[];
   onboardingCompletedAt: Date | null;
 };
 

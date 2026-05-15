@@ -8,18 +8,12 @@ import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import { useTelegram } from "./hooks/useTelegram";
 import { useProfileStore } from "./store/profileStore";
-
-const navItems = [
-  { to: "/", label: "Главная" },
-  { to: "/workout", label: "Тренировка" },
-  { to: "/progress", label: "Прогресс" },
-  { to: "/plans", label: "Планы" },
-  { to: "/profile", label: "Профиль" }
-];
+import { useTranslation } from "./i18n";
 
 export default function App() {
   useTelegram();
   const location = useLocation();
+  const { t } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const loading = useProfileStore((s) => s.loading);
   const error = useProfileStore((s) => s.error);
@@ -32,13 +26,21 @@ export default function App() {
     }
   }, [fetched, load]);
 
+  const navItems = [
+    { to: "/", label: t("nav.home") },
+    { to: "/workout", label: t("nav.workout") },
+    { to: "/progress", label: t("nav.progress") },
+    { to: "/plans", label: t("nav.plans") },
+    { to: "/profile", label: t("nav.profile") }
+  ];
+
   const isOnboardingRoute = location.pathname === "/onboarding";
   const needsOnboarding = profile !== null && !profile.onboardingCompleted;
 
   if (loading && !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-        Загрузка...
+        {t("app.loading")}
       </div>
     );
   }
@@ -46,7 +48,7 @@ export default function App() {
   if (error && !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-rose-300">
-        Не удалось загрузить профиль: {error}
+        {t("app.loadingProfile", { error })}
       </div>
     );
   }
@@ -54,31 +56,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/90 p-4 backdrop-blur">
-        <h1 className="text-lg font-semibold">FitReward</h1>
+        <h1 className="text-lg font-semibold">{t("app.title")}</h1>
       </header>
       <main className="mx-auto max-w-lg p-4 pb-24">
         <Routes>
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route
-            path="/"
-            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Home />}
-          />
-          <Route
-            path="/workout"
-            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Workout />}
-          />
-          <Route
-            path="/progress"
-            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Progress />}
-          />
-          <Route
-            path="/plans"
-            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Plans />}
-          />
-          <Route
-            path="/profile"
-            element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Profile />}
-          />
+          <Route path="/" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Home />} />
+          <Route path="/workout" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Workout />} />
+          <Route path="/progress" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Progress />} />
+          <Route path="/plans" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Plans />} />
+          <Route path="/profile" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Profile />} />
         </Routes>
       </main>
       {!isOnboardingRoute && (

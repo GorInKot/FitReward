@@ -5,63 +5,42 @@ import {
   Limitation,
   OnboardingPayload,
   PrimaryGoal,
+  RecommendationReason,
   TrainingEnvironment,
   TrainingStructure,
   submitOnboarding
 } from "../utils/api";
 import { useProfileStore } from "../store/profileStore";
+import { useTranslation } from "../i18n";
 
-interface OptionMeta<T extends string> {
-  value: T;
-  label: string;
-  hint?: string;
-}
-
-const GOAL_OPTIONS: OptionMeta<PrimaryGoal>[] = [
-  { value: "MUSCLE_GAIN", label: "Набор мышц", hint: "Гипертрофия, увеличение объёма" },
-  { value: "FAT_LOSS", label: "Снижение веса", hint: "Дефицит калорий + тренировки" },
-  { value: "GENERAL_FITNESS", label: "Общая форма", hint: "Здоровье и тонус" },
-  { value: "STRENGTH", label: "Сила", hint: "Прирост в базовых движениях" },
-  { value: "ENDURANCE", label: "Выносливость", hint: "Кардио и работоспособность" },
-  { value: "BODY_RECOMPOSITION", label: "Рекомпозиция", hint: "Жир ↓, мышцы ↑ одновременно" },
-  { value: "RETURN_AFTER_BREAK", label: "Возврат к тренировкам", hint: "Мягко вернуться в форму" }
+const GOAL_VALUES: PrimaryGoal[] = [
+  "MUSCLE_GAIN",
+  "FAT_LOSS",
+  "GENERAL_FITNESS",
+  "STRENGTH",
+  "ENDURANCE",
+  "BODY_RECOMPOSITION",
+  "RETURN_AFTER_BREAK"
 ];
 
-const EXPERIENCE_OPTIONS: OptionMeta<ExperienceLevel>[] = [
-  { value: "NEVER", label: "Никогда не тренировался" },
-  { value: "LESS_THAN_6_MONTHS", label: "Меньше 6 месяцев" },
-  { value: "ONE_TO_TWO_YEARS", label: "1–2 года" },
-  { value: "THREE_PLUS_YEARS", label: "3+ года" }
+const EXPERIENCE_VALUES: ExperienceLevel[] = [
+  "NEVER",
+  "LESS_THAN_6_MONTHS",
+  "ONE_TO_TWO_YEARS",
+  "THREE_PLUS_YEARS"
 ];
 
 const FREQUENCY_OPTIONS = [2, 3, 4, 5, 6];
 
-const ENVIRONMENT_OPTIONS: OptionMeta<TrainingEnvironment>[] = [
-  { value: "GYM", label: "Спортзал", hint: "Полный доступ к оборудованию" },
-  { value: "HOME", label: "Дома", hint: "Гантели, штанга, скамья" },
-  { value: "HOME_MINIMAL", label: "Дома с минимумом", hint: "Резинки, гири, эспандер" },
-  { value: "BODYWEIGHT", label: "Только своё тело", hint: "Без оборудования" }
-];
+const ENVIRONMENT_VALUES: TrainingEnvironment[] = ["GYM", "HOME", "HOME_MINIMAL", "BODYWEIGHT"];
 
-const LIMITATION_OPTIONS: OptionMeta<Limitation>[] = [
-  { value: "NONE", label: "Нет ограничений" },
-  { value: "LOWER_BACK", label: "Поясница" },
-  { value: "KNEES", label: "Колени" },
-  { value: "SHOULDERS", label: "Плечи" },
-  { value: "POST_INJURY", label: "После травмы" }
-];
-
-const STRUCTURE_LABELS: Record<TrainingStructure, string> = {
-  FULL_BODY: "Full-body",
-  UPPER_LOWER: "Upper/Lower",
-  PUSH_PULL_LEGS: "Push/Pull/Legs",
-  SPLIT: "Классический сплит"
-};
+const LIMITATION_VALUES: Limitation[] = ["NONE", "LOWER_BACK", "KNEES", "SHOULDERS", "POST_INJURY"];
 
 const TOTAL_STEPS = 5;
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const setProfile = useProfileStore((s) => s.setProfile);
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState<PrimaryGoal | null>(null);
@@ -71,7 +50,9 @@ export default function Onboarding() {
   const [limitations, setLimitations] = useState<Limitation[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ suggested: TrainingStructure; reasons: string[] } | null>(null);
+  const [result, setResult] = useState<
+    { suggested: TrainingStructure; reasons: RecommendationReason[] } | null
+  >(null);
 
   function toggleLimitation(value: Limitation) {
     setLimitations((prev) => {
@@ -111,7 +92,7 @@ export default function Onboarding() {
         reasons: response.recommendation.reasons
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось сохранить");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -121,16 +102,18 @@ export default function Onboarding() {
     return (
       <section className="space-y-4">
         <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-5 text-slate-950">
-          <p className="text-sm font-medium">Готово!</p>
-          <h2 className="mt-2 text-2xl font-bold">Мы рекомендуем: {STRUCTURE_LABELS[result.suggested]}</h2>
+          <p className="text-sm font-medium">{t("onboarding.result.done")}</p>
+          <h2 className="mt-2 text-2xl font-bold">
+            {t("onboarding.result.recommendTitle", { structure: t(`structure.${result.suggested}`) })}
+          </h2>
         </div>
         <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h3 className="text-sm font-semibold text-slate-300">Почему</h3>
+          <h3 className="text-sm font-semibold text-slate-300">{t("onboarding.result.whyTitle")}</h3>
           <ul className="mt-3 space-y-2 text-sm">
-            {result.reasons.map((reason) => (
-              <li key={reason} className="flex gap-2 rounded-xl bg-slate-800 p-3">
+            {result.reasons.map((reason, i) => (
+              <li key={i} className="flex gap-2 rounded-xl bg-slate-800 p-3">
                 <span className="text-emerald-300">·</span>
-                <span>{reason}</span>
+                <span>{t(reason.key, reason.params)}</span>
               </li>
             ))}
           </ul>
@@ -139,7 +122,7 @@ export default function Onboarding() {
           onClick={() => navigate("/")}
           className="w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950"
         >
-          Продолжить
+          {t("onboarding.result.continue")}
         </button>
       </section>
     );
@@ -149,7 +132,7 @@ export default function Onboarding() {
     <section className="space-y-4">
       <div className="space-y-2">
         <p className="text-xs text-slate-400">
-          Шаг {step} из {TOTAL_STEPS}
+          {t("onboarding.progress", { step, total: TOTAL_STEPS })}
         </p>
         <div className="h-1 rounded-full bg-slate-800">
           <div
@@ -160,44 +143,45 @@ export default function Onboarding() {
       </div>
 
       {step === 1 && (
-        <StepWrapper title="Какая твоя главная цель?" subtitle="От этого зависит вся программа тренировок">
-          {GOAL_OPTIONS.map((option) => (
+        <StepWrapper title={t("onboarding.step1.title")} subtitle={t("onboarding.step1.subtitle")}>
+          {GOAL_VALUES.map((value) => (
             <OptionCard
-              key={option.value}
-              label={option.label}
-              hint={option.hint}
-              selected={goal === option.value}
-              onClick={() => setGoal(option.value)}
+              key={value}
+              label={t(`goal.${value}`)}
+              hint={t(`goal.${value}_hint`)}
+              selected={goal === value}
+              onClick={() => setGoal(value)}
             />
           ))}
         </StepWrapper>
       )}
 
       {step === 2 && (
-        <StepWrapper title="Какой у тебя опыт тренировок?" subtitle="Подберём подходящую нагрузку и упражнения">
-          {EXPERIENCE_OPTIONS.map((option) => (
+        <StepWrapper title={t("onboarding.step2.title")} subtitle={t("onboarding.step2.subtitle")}>
+          {EXPERIENCE_VALUES.map((value) => (
             <OptionCard
-              key={option.value}
-              label={option.label}
-              hint={option.hint}
-              selected={experience === option.value}
-              onClick={() => setExperience(option.value)}
+              key={value}
+              label={t(`experience.${value}`)}
+              selected={experience === value}
+              onClick={() => setExperience(value)}
             />
           ))}
         </StepWrapper>
       )}
 
       {step === 3 && (
-        <StepWrapper
-          title="Сколько дней в неделю реально готов тренироваться?"
-          subtitle="Не идеал — а то, что выдержишь стабильно"
-        >
+        <StepWrapper title={t("onboarding.step3.title")} subtitle={t("onboarding.step3.subtitle")}>
           {FREQUENCY_OPTIONS.map((days) => {
-            const word = days >= 5 ? "дней" : "дня";
+            const word =
+              days === 1
+                ? t("onboarding.step3.day")
+                : days >= 5
+                  ? t("onboarding.step3.days_many")
+                  : t("onboarding.step3.days_few");
             return (
               <OptionCard
                 key={days}
-                label={`${days} ${word} в неделю`}
+                label={t("onboarding.step3.perWeek", { n: days, word })}
                 selected={frequency === days}
                 onClick={() => setFrequency(days)}
               />
@@ -207,30 +191,27 @@ export default function Onboarding() {
       )}
 
       {step === 4 && (
-        <StepWrapper title="Где будешь тренироваться?" subtitle="От этого зависит подбор упражнений">
-          {ENVIRONMENT_OPTIONS.map((option) => (
+        <StepWrapper title={t("onboarding.step4.title")} subtitle={t("onboarding.step4.subtitle")}>
+          {ENVIRONMENT_VALUES.map((value) => (
             <OptionCard
-              key={option.value}
-              label={option.label}
-              hint={option.hint}
-              selected={environment === option.value}
-              onClick={() => setEnvironment(option.value)}
+              key={value}
+              label={t(`environment.${value}`)}
+              hint={t(`environment.${value}_hint`)}
+              selected={environment === value}
+              onClick={() => setEnvironment(value)}
             />
           ))}
         </StepWrapper>
       )}
 
       {step === 5 && (
-        <StepWrapper
-          title="Есть ли ограничения?"
-          subtitle="Отметь все, что подходит. Подберём упражнения с учётом этого"
-        >
-          {LIMITATION_OPTIONS.map((option) => (
+        <StepWrapper title={t("onboarding.step5.title")} subtitle={t("onboarding.step5.subtitle")}>
+          {LIMITATION_VALUES.map((value) => (
             <OptionCard
-              key={option.value}
-              label={option.label}
-              selected={limitations.includes(option.value)}
-              onClick={() => toggleLimitation(option.value)}
+              key={value}
+              label={t(`limitation.${value}`)}
+              selected={limitations.includes(value)}
+              onClick={() => toggleLimitation(value)}
             />
           ))}
         </StepWrapper>
@@ -244,7 +225,7 @@ export default function Onboarding() {
             onClick={() => setStep((s) => Math.max(1, s - 1))}
             className="flex-1 rounded-xl bg-slate-800 px-4 py-3 text-sm"
           >
-            Назад
+            {t("common.back")}
           </button>
         )}
         {step < TOTAL_STEPS ? (
@@ -253,7 +234,7 @@ export default function Onboarding() {
             disabled={!canAdvance}
             className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
           >
-            Далее
+            {t("common.next")}
           </button>
         ) : (
           <button
@@ -261,7 +242,7 @@ export default function Onboarding() {
             disabled={!canAdvance || submitting}
             className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
           >
-            {submitting ? "Сохраняем..." : "Получить рекомендацию"}
+            {submitting ? t("onboarding.submitting") : t("onboarding.submit")}
           </button>
         )}
       </div>
@@ -304,9 +285,7 @@ function OptionCard({
     <button
       onClick={onClick}
       className={`w-full rounded-xl border p-3 text-left transition ${
-        selected
-          ? "border-emerald-400 bg-emerald-500/10"
-          : "border-slate-800 bg-slate-900 hover:border-slate-600"
+        selected ? "border-emerald-400 bg-emerald-500/10" : "border-slate-800 bg-slate-900 hover:border-slate-600"
       }`}
     >
       <p className={`text-sm font-medium ${selected ? "text-emerald-300" : "text-white"}`}>{label}</p>

@@ -29,7 +29,6 @@ model User {
 
   // Derived recommendation
   recommendedStructure  TrainingStructure?
-  recommendationReasons String[]
 
   onboardingCompletedAt DateTime?
 

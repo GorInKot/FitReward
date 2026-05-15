@@ -37,7 +37,6 @@ function emptyProfile(telegramId: string): SerializedProfile {
     trainingEnvironment: null,
     limitations: [],
     recommendedStructure: null,
-    recommendationReasons: [],
     onboardingCompletedAt: null,
     onboardingCompleted: false
   };

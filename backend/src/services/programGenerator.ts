@@ -137,7 +137,7 @@ export async function generateAndSaveProgram(input: GeneratorInput): Promise<str
                 const presc = prescriptionFor(input.primaryGoal, pick.slot.isCompound);
                 return {
                   order: slotIndex + 1,
-                  slotName: pick.slot.name,
+                  slotName: pick.slot.key,
                   exerciseCatalogId: pick.exercise.id,
                   suggestedSets: presc.sets,
                   suggestedRepsLow: presc.repsLow,
@@ -241,11 +241,8 @@ export async function generateProgram(input: GeneratorInput): Promise<GeneratedP
       dayUsed.add(pick.slug);
     }
 
-    const dayName = dayTemplates.length === 1
-      ? `День ${dayIndex + 1}: ${template.name}`
-      : `День ${dayIndex + 1}: ${template.name}`;
-
-    days.push({ name: dayName, picks });
+    // Store the template key — frontend formats "День {n}: {translate(key)}"
+    days.push({ name: template.key, picks });
   }
 
   return { structure: input.structure, days };

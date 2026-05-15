@@ -69,9 +69,13 @@ export interface ApiProfile {
   trainingEnvironment: TrainingEnvironment | null;
   limitations: Limitation[];
   recommendedStructure: TrainingStructure | null;
-  recommendationReasons: string[];
   onboardingCompletedAt: string | null;
   onboardingCompleted: boolean;
+}
+
+export interface RecommendationReason {
+  key: string;
+  params?: Record<string, string | number>;
 }
 
 export interface OnboardingPayload {
@@ -88,14 +92,14 @@ export interface OnboardingResult {
   recommendation: {
     suggestedStructure: TrainingStructure;
     finalStructure: TrainingStructure;
-    reasons: string[];
+    reasons: RecommendationReason[];
     overridden: boolean;
   };
 }
 
 export interface RecommendationPreview {
   structure: TrainingStructure;
-  reasons: string[];
+  reasons: RecommendationReason[];
 }
 
 export function getProfile() {
