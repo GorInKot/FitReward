@@ -47,27 +47,30 @@ interface ProgressionInfo {
 }
 
 /**
- * For each exercise in the session, look up the user's most recent completed
- * session containing the same exerciseCatalogId. Take the heaviest set
- * (max weight, then max reps) and compute a progression suggestion.
+ * For each slot in the session, look up the user's most recent completed
+ * session containing the same slotName (e.g. "slot.compound_press_chest").
+ * This matches across exercise variations — if last time the chest press
+ * slot was Bench Press and today it's Dumbbell Bench, we still pull the
+ * progression context.
  *
- * Excludes the current session from the lookup so a freshly-started session
- * doesn't reference itself.
+ * Take the heaviest set (max weight, then max reps) and compute a suggestion.
+ * Excludes the current session so an in-progress session doesn't self-reference.
  */
 async function buildProgressionMap(
   userId: string,
-  exerciseCatalogIds: string[],
+  exercises: { slotName: string; exerciseCatalogId: string }[],
   excludeSessionId: string
 ): Promise<Map<string, ProgressionInfo>> {
   const result = new Map<string, ProgressionInfo>();
-  if (exerciseCatalogIds.length === 0) return result;
+  if (exercises.length === 0) return result;
 
-  // One query per exercise — N is small (5-8 per session). Keeps logic simple.
   await Promise.all(
-    exerciseCatalogIds.map(async (catalogId) => {
+    exercises.map(async ({ slotName, exerciseCatalogId }) => {
+      // Match by either slot key OR exact exercise. Useful when the user
+      // regenerated their program between sessions and slot names changed.
       const lastExercise = await prisma.sessionExercise.findFirst({
         where: {
-          exerciseCatalogId: catalogId,
+          OR: [{ slotName }, { exerciseCatalogId }],
           session: {
             userId,
             completedAt: { not: null },
@@ -84,7 +87,7 @@ async function buildProgressionMap(
       });
 
       if (!lastExercise || lastExercise.setLogs.length === 0) {
-        result.set(catalogId, { previous: null, suggestion: null });
+        result.set(slotName, { previous: null, suggestion: null });
         return;
       }
 
@@ -111,7 +114,7 @@ async function buildProgressionMap(
         targetRepsHigh: lastExercise.suggestedRepsHigh
       });
 
-      result.set(catalogId, { previous, suggestion });
+      result.set(slotName, { previous, suggestion });
     })
   );
 
@@ -121,13 +124,16 @@ async function buildProgressionMap(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function attachProgression(session: any, userId: string): Promise<any> {
   if (!session) return session;
-  const catalogIds: string[] = session.exercises.map((e: { exerciseCatalogId: string }) => e.exerciseCatalogId);
-  const map = await buildProgressionMap(userId, catalogIds, session.id);
+  const exercises = session.exercises.map((e: { slotName: string; exerciseCatalogId: string }) => ({
+    slotName: e.slotName,
+    exerciseCatalogId: e.exerciseCatalogId
+  }));
+  const map = await buildProgressionMap(userId, exercises, session.id);
   return {
     ...session,
-    exercises: session.exercises.map((e: { exerciseCatalogId: string }) => ({
+    exercises: session.exercises.map((e: { slotName: string }) => ({
       ...e,
-      ...(map.get(e.exerciseCatalogId) ?? { previous: null, suggestion: null })
+      ...(map.get(e.slotName) ?? { previous: null, suggestion: null })
     }))
   };
 }
