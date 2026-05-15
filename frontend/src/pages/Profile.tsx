@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { updateProfile } from "../utils/api";
 import { getTelegramUsername } from "../utils/telegram";
 import { useProfileStore } from "../store/profileStore";
+import { useAchievementStore } from "../store/achievementStore";
 import { Locale, useTranslation } from "../i18n";
 
 export default function Profile() {
@@ -11,6 +12,7 @@ export default function Profile() {
   const profile = useProfileStore((s) => s.profile);
   const loading = useProfileStore((s) => s.loading);
   const setProfile = useProfileStore((s) => s.setProfile);
+  const achievements = useAchievementStore((s) => s.achievements);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -119,6 +121,46 @@ export default function Profile() {
         <button onClick={() => navigate("/onboarding")} className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm">
           {profile?.onboardingCompleted ? t("profile.restartOnboarding") : t("profile.startOnboarding")}
         </button>
+      </article>
+
+      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-300">{t("achievement.sectionTitle")}</h3>
+          <span className="text-xs text-slate-500">
+            {t("achievement.progress", {
+              unlocked: achievements.filter((a) => a.unlockedAt).length,
+              total: achievements.length
+            })}
+          </span>
+        </div>
+        {achievements.length > 0 && (
+          <ul className="mt-3 grid grid-cols-2 gap-2">
+            {achievements.map((a) => {
+              const unlocked = Boolean(a.unlockedAt);
+              return (
+                <li
+                  key={a.key}
+                  className={`rounded-xl border p-3 ${
+                    unlocked
+                      ? "border-emerald-500/40 bg-emerald-500/10"
+                      : "border-slate-800 bg-slate-800/40 opacity-60"
+                  }`}
+                >
+                  <p className="text-base">{unlocked ? "🏆" : t("achievement.locked")}</p>
+                  <p className={`mt-1 text-sm font-medium ${unlocked ? "text-emerald-100" : "text-slate-300"}`}>
+                    {t(`achievement.${a.key}.title`)}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-slate-400">
+                    {t(`achievement.${a.key}.description`)}
+                  </p>
+                  <p className="mt-1 text-[10px] text-amber-300">
+                    {t("achievement.rewardSuffix", { n: a.reward })}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </article>
 
       <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">

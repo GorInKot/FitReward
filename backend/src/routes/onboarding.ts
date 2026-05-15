@@ -10,6 +10,7 @@ import {
 import { prisma } from "../utils/database";
 import { recommendTrainingStructure } from "../services/trainingRecommendation";
 import { generateAndSaveProgram } from "../services/programGenerator";
+import { checkAndUnlockAchievements } from "../services/achievementEngine";
 import { PROFILE_SELECT, serializeProfile } from "../utils/profileSerializer";
 
 const router = Router();
@@ -86,6 +87,11 @@ router.post("/", async (req, res) => {
       programGenerationError = String(error);
       console.error("[onboarding] Program generation failed", error);
     }
+
+    // Fire-and-forget achievement check; failures shouldn't fail the request.
+    void checkAndUnlockAchievements(user.id).catch((err) =>
+      console.error("[onboarding] achievement check failed", err)
+    );
 
     return res.json({
       profile: serializeProfile(user),

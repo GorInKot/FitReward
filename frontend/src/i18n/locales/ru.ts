@@ -294,6 +294,23 @@ export const ru = {
     kg: "кг",
     reps: "повт"
   },
+  achievement: {
+    sectionTitle: "Достижения",
+    locked: "🔒",
+    rewardSuffix: "+{n} ⭐",
+    progress: "{unlocked}/{total}",
+    toastTitle: "Получено достижение!",
+    onboarding_complete: { title: "Старт пути", description: "Прошёл онбординг" },
+    first_workout: { title: "Первая тренировка", description: "Завершил свою первую сессию" },
+    streak_3: { title: "Три дня подряд", description: "3 дня тренировок без пропусков" },
+    streak_7: { title: "Неделя в режиме", description: "7 дней подряд с тренировками" },
+    sessions_10: { title: "Десятка", description: "10 завершённых тренировок" },
+    sessions_30: { title: "Постоянство", description: "30 завершённых тренировок" },
+    first_metric: { title: "Первый замер", description: "Зафиксировал параметры тела" },
+    first_pr: { title: "Первая нагрузка", description: "Залогал сет с весом" },
+    volume_10000: { title: "Тоннаж недели", description: "10 000 кг·повт за 7 дней" },
+    program_week_complete: { title: "План на отлично", description: "Выполнил все тренировки недели" }
+  },
   fatigue: {
     bannerTitle: "Похоже, накопилась усталость",
     bannerHint: "Подумай о неделе с пониженной нагрузкой или дополнительном дне отдыха.",

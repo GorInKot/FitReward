@@ -411,3 +411,25 @@ export interface ApiDashboard {
 export function getDashboard() {
   return request<ApiDashboard>("/api/dashboard");
 }
+
+export type AchievementCategory = "CONSISTENCY" | "MILESTONE" | "STRENGTH" | "BODY";
+
+export interface ApiAchievement {
+  key: string;
+  category: AchievementCategory;
+  threshold: number | null;
+  reward: number;
+  unlockedAt: string | null;
+  notifiedAt: string | null;
+}
+
+export function getAchievements() {
+  return request<{ achievements: ApiAchievement[] }>("/api/achievements");
+}
+
+export function markAchievementsSeen(keys: string[]) {
+  return request<void>("/api/achievements/seen", {
+    method: "POST",
+    body: JSON.stringify({ keys })
+  });
+}

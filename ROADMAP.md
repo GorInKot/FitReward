@@ -254,7 +254,11 @@
 
 ---
 
-## Фаза 9. AI-коуч (P2)
+## Фаза 9. AI-коуч (P2) — ⏸ ОТЛОЖЕНО
+
+Требует ANTHROPIC_API_KEY и платный API. Пока пропускаем. Когда вернёмся — пользователь предпочёл FAB-кнопку «Спросить» на любом экране и сохранение истории в БД.
+
+
 
 Conversational layer для объяснений и советов.
 
@@ -268,12 +272,36 @@ Conversational layer для объяснений и советов.
 
 ---
 
-## Фаза 10. Достижения и геймификация (P2)
+## Фаза 10. Достижения и геймификация (P2) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ПРОДА
 
-- [ ] Prisma модели `Achievement` + `UserAchievement` (вернуть)
-- [ ] Сидер достижений: «Первая тренировка», «Неделя в режиме», «Удвоил вес в жиме», «10 PR'ов», etc.
-- [ ] `services/achievementEngine.ts` — реальная проверка триггеров после каждой сессии
-- [ ] Уведомления через бота при unlock
+### Backend
+- [x] Prisma модели `Achievement` + `UserAchievement` + enum `AchievementCategory`
+- [x] Миграция `20260515_achievements`
+- [x] Auto-seed 10 ачивок при старте сервера (idempotent через upsert by key):
+  - `onboarding_complete`, `first_workout`, `streak_3`, `streak_7`,
+  - `sessions_10`, `sessions_30`, `first_metric`, `first_pr`,
+  - `volume_10000`, `program_week_complete`
+- [x] `services/achievementEngine.ts` — `checkAndUnlockAchievements(userId)` проверяет все 10 правил
+- [x] Хуки fire-and-forget после `onboarding submit`, `sessions complete`, `sets log` (если weight), `metrics create`
+- [x] `GET /api/achievements` — все ачивки с `unlockedAt` и `notifiedAt`
+- [x] `POST /api/achievements/seen` — батч-mark пользователь увидел toast
+
+### Frontend
+- [x] `store/achievementStore.ts` (Zustand) — `achievements`, `pendingToasts`, `load`, `refresh`, `dismissToast`
+- [x] `AchievementToast` компонент — глобальный bottom-banner с дисмиссом
+- [x] App.tsx: refresh ачивок при каждом route change → toasts появляются после действий
+- [x] Profile — секция «Достижения» grid 2×N (разблокированные подсвечены emerald, заблокированные приглушены)
+- [x] Переводы 10 ачивок (title + description) на RU/EN
+
+### Не сделано (отложено)
+- [ ] Уведомления через бота — Фаза 11
+- [ ] Stars-награды реальная привязка — Фаза 12
+
+### Тест
+- [ ] Прод: онбординг → toast «Старт пути»
+- [ ] Заверши первую тренировку → toast «Первая тренировка»
+- [ ] Залогь сет с весом → toast «Первая нагрузка»
+- [ ] Profile → секция «Достижения» показывает 10 карточек, разблокированные подсвечены
 
 ---
 

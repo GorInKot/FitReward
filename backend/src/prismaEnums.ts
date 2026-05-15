@@ -105,3 +105,11 @@ export const ProgramStatus = {
   ARCHIVED: "ARCHIVED"
 } as const;
 export type ProgramStatus = (typeof ProgramStatus)[keyof typeof ProgramStatus];
+
+export const AchievementCategory = {
+  CONSISTENCY: "CONSISTENCY",
+  MILESTONE: "MILESTONE",
+  STRENGTH: "STRENGTH",
+  BODY: "BODY"
+} as const;
+export type AchievementCategory = (typeof AchievementCategory)[keyof typeof AchievementCategory];

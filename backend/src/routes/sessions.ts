@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../utils/database";
 import { nextSuggestion } from "../services/progressionEngine";
+import { checkAndUnlockAchievements } from "../services/achievementEngine";
 
 const router = Router();
 
@@ -323,6 +324,12 @@ router.post("/:id/sets", async (req, res) => {
       }
     });
 
+    if (parsed.data.weight != null) {
+      void checkAndUnlockAchievements(auth.userId).catch((err) =>
+        console.error("[sessions] achievement check failed", err)
+      );
+    }
+
     return res.status(201).json({ set });
   } catch (error) {
     return res.status(500).json({ error: "Failed to log set", details: String(error) });
@@ -421,6 +428,9 @@ router.patch("/:id/complete", async (req, res) => {
       },
       include: sessionInclude
     });
+    void checkAndUnlockAchievements(auth.userId).catch((err) =>
+      console.error("[sessions] achievement check failed", err)
+    );
     return res.json({ session: updated });
   } catch (error) {
     return res.status(500).json({ error: "Failed to complete session", details: String(error) });

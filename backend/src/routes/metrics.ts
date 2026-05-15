@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../utils/database";
+import { checkAndUnlockAchievements } from "../services/achievementEngine";
 
 const router = Router();
 
@@ -70,6 +71,9 @@ router.post("/", async (req, res) => {
       },
       select: { id: true, date: true, weight: true, bodyFat: true, notes: true }
     });
+    void checkAndUnlockAchievements(auth.userId).catch((err) =>
+      console.error("[metrics] achievement check failed", err)
+    );
     return res.status(201).json({ metric });
   } catch (error) {
     return res.status(500).json({ error: "Failed to create metric", details: String(error) });

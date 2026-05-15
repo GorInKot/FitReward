@@ -294,6 +294,23 @@ export const en = {
     kg: "kg",
     reps: "reps"
   },
+  achievement: {
+    sectionTitle: "Achievements",
+    locked: "🔒",
+    rewardSuffix: "+{n} ⭐",
+    progress: "{unlocked}/{total}",
+    toastTitle: "Achievement unlocked!",
+    onboarding_complete: { title: "Started the journey", description: "Completed onboarding" },
+    first_workout: { title: "First workout", description: "Finished your first session" },
+    streak_3: { title: "Three in a row", description: "3 days of training without skipping" },
+    streak_7: { title: "Week in the zone", description: "7 consecutive training days" },
+    sessions_10: { title: "Tenner", description: "10 completed workouts" },
+    sessions_30: { title: "Consistency", description: "30 completed workouts" },
+    first_metric: { title: "First measurement", description: "Logged your body metrics" },
+    first_pr: { title: "First load", description: "Logged a set with weight" },
+    volume_10000: { title: "Weekly tonnage", description: "10,000 kg·reps over 7 days" },
+    program_week_complete: { title: "Perfect plan week", description: "Hit every planned session of the week" }
+  },
   fatigue: {
     bannerTitle: "You look fatigued",
     bannerHint: "Consider a deload week or an extra rest day.",

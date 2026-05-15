@@ -32,9 +32,10 @@ model User {
 
   onboardingCompletedAt DateTime?
 
-  programs    Program[]
-  sessions    WorkoutSession[]
-  bodyMetrics BodyMetric[]
+  programs     Program[]
+  sessions     WorkoutSession[]
+  bodyMetrics  BodyMetric[]
+  achievements UserAchievement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -257,4 +258,33 @@ model BodyMetric {
   createdAt DateTime @default(now())
 
   @@index([userId, date])
+}
+
+model Achievement {
+  id               String              @id @default(cuid())
+  key              String              @unique
+  category         AchievementCategory
+  threshold        Int?
+  reward           Int                 @default(10)
+  userAchievements UserAchievement[]
+}
+
+enum AchievementCategory {
+  CONSISTENCY
+  MILESTONE
+  STRENGTH
+  BODY
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+  notifiedAt    DateTime?
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }

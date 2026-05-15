@@ -8,7 +8,9 @@ import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import { useTelegram } from "./hooks/useTelegram";
 import { useProfileStore } from "./store/profileStore";
+import { useAchievementStore } from "./store/achievementStore";
 import { useTranslation } from "./i18n";
+import AchievementToast from "./components/AchievementToast";
 
 export default function App() {
   useTelegram();
@@ -19,12 +21,26 @@ export default function App() {
   const error = useProfileStore((s) => s.error);
   const fetched = useProfileStore((s) => s.fetched);
   const load = useProfileStore((s) => s.load);
+  const loadAchievements = useAchievementStore((s) => s.load);
+  const refreshAchievements = useAchievementStore((s) => s.refresh);
 
   useEffect(() => {
     if (!fetched) {
       void load();
     }
   }, [fetched, load]);
+
+  // Initial load + re-check on every route change so unlocks triggered by
+  // POST actions (session complete, log set, save metric) surface as toasts.
+  useEffect(() => {
+    if (!profile || !profile.onboardingCompleted) return;
+    void loadAchievements();
+  }, [profile, loadAchievements]);
+
+  useEffect(() => {
+    if (!profile || !profile.onboardingCompleted) return;
+    void refreshAchievements();
+  }, [location.pathname, profile, refreshAchievements]);
 
   const navItems = [
     { to: "/", label: t("nav.home") },
@@ -83,6 +99,7 @@ export default function App() {
           ))}
         </nav>
       )}
+      <AchievementToast />
     </div>
   );
 }
