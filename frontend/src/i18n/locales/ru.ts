@@ -258,11 +258,41 @@ export const ru = {
   },
   home: {
     greeting: "Привет!",
-    todayTitle: "Сегодня: открой «Тренировку», чтобы начать"
+    nextWorkout: "Следующая: {name}",
+    noProgram: "Создай программу на вкладке «Планы»",
+    startWorkout: "Начать тренировку",
+    statSessions: "Тренировок за неделю",
+    statStreak: "Серия",
+    statVolume: "Объём, кг·повт",
+    streakDays: "{n} дн.",
+    weekTitle: "Эта неделя"
   },
   progress: {
     title: "Прогресс",
-    placeholder: "Скоро здесь появится история тренировок, вес и личные рекорды."
+    statSessions: "Всего тренировок",
+    statStreak: "Серия",
+    statWeekVolume: "Объём за неделю",
+    weightTitle: "История веса",
+    weightEmpty: "Добавь свой первый замер ниже",
+    addMetric: "Добавить замер",
+    cancel: "Отмена",
+    save: "Сохранить",
+    saving: "Сохраняем...",
+    weightLabel: "Вес (кг)",
+    bodyFatLabel: "Жир (%)",
+    notesLabel: "Заметка",
+    deleteConfirm: "Удалить запись?",
+    calendarTitle: "Последние 30 дней",
+    prTitle: "Личные рекорды",
+    prEmpty: "Залогируй сет с весом — здесь появятся PR",
+    prValue: "{weight} × {reps}",
+    historyTitle: "История замеров",
+    historyEmpty: "Пока пусто",
+    loadFailed: "Не удалось загрузить прогресс"
+  },
+  unit: {
+    kg: "кг",
+    reps: "повт"
   },
   reps: {
     range: "{low}–{high}",

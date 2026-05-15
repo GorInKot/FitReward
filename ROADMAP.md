@@ -191,19 +191,39 @@
 
 ---
 
-## Фаза 7. Progress tracking (P1)
+## Фаза 7. Progress tracking (P1) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ПРОДА
 
-Замеры тела, история, графики, метрики.
+Замеры тела, история, графики, метрики. Также восстановлен полноценный Home.
 
-- [ ] Prisma модель `BodyMetric` (id, userId, date, weight, bodyFat, measurements JSONB, photos[], notes)
-- [ ] CRUD `/api/metrics`
-- [ ] Frontend Progress page:
-  - [ ] Реальный график веса (svg или Recharts)
-  - [ ] Календарь тренировок: дни с completedAt подсвечены
-  - [ ] Personal Records: вытащить из SetLog max(weight) по упражнению
-  - [ ] Tonnage за неделю/месяц (volume = sets × reps × weight)
-  - [ ] Серия дней подряд (streak)
-- [ ] Форма «Добавить замер»
+### Backend
+- [x] Prisma модель `BodyMetric` (id, userId, date, weight, bodyFat, notes)
+- [x] Миграция `20260515_body_metrics`
+- [x] CRUD: GET/POST/DELETE `/api/metrics`
+- [x] GET `/api/dashboard` — агрегированный блок:
+  - stats: completedSessions, weekSessionsCount, weekVolume, streak
+  - weightHistory[] — все замеры по возрастанию даты
+  - calendar[] — последние 30 дней с флагом trained
+  - personalRecords[] — топ-8 упражнений по max весу
+
+### Frontend
+- [x] API-клиент: `getMetrics`, `createMetric`, `deleteMetric`, `getDashboard`
+- [x] Progress page переписана:
+  - 3 stat-карточки сверху (всего тренировок, серия, объём за неделю)
+  - История веса — простой bar-chart по последним 12 точкам + кнопка «Добавить замер» (модалка-форма inline)
+  - Календарь 30 дней (зелёные = тренировался)
+  - Personal Records (топ-8 по весу)
+  - История замеров (удаление крестиком)
+- [x] Home page восстановлена: приветствие с именем, следующая тренировка с кнопкой «Начать», блок «Эта неделя» с реальной статистикой
+- [x] Переводы для всех новых строк RU/EN
+
+### Не сделано (отложено)
+- [ ] Tonnage за месяц (есть только за неделю)
+- [ ] Photos / measurements JSONB
+
+### Тест
+- [ ] Прод: добавить замер веса → должен появиться в графике и списке
+- [ ] Завершить тренировку → streak +1, weekSessionsCount +1, weekVolume растёт
+- [ ] Personal Records показывают залогированные сеты с весом
 
 ---
 

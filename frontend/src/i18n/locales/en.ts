@@ -258,11 +258,41 @@ export const en = {
   },
   home: {
     greeting: "Hi!",
-    todayTitle: "Today: open the Workout tab to begin"
+    nextWorkout: "Up next: {name}",
+    noProgram: "Generate a program on the Plans tab",
+    startWorkout: "Start workout",
+    statSessions: "Sessions this week",
+    statStreak: "Streak",
+    statVolume: "Volume, kg·reps",
+    streakDays: "{n}d",
+    weekTitle: "This week"
   },
   progress: {
     title: "Progress",
-    placeholder: "Workout history, body weight, and PRs are coming soon."
+    statSessions: "Total sessions",
+    statStreak: "Streak",
+    statWeekVolume: "Volume this week",
+    weightTitle: "Weight history",
+    weightEmpty: "Add your first measurement below",
+    addMetric: "Add measurement",
+    cancel: "Cancel",
+    save: "Save",
+    saving: "Saving...",
+    weightLabel: "Weight (kg)",
+    bodyFatLabel: "Body fat (%)",
+    notesLabel: "Note",
+    deleteConfirm: "Delete this entry?",
+    calendarTitle: "Last 30 days",
+    prTitle: "Personal records",
+    prEmpty: "Log a set with weight — PRs will appear here",
+    prValue: "{weight} × {reps}",
+    historyTitle: "Measurements",
+    historyEmpty: "Empty for now",
+    loadFailed: "Failed to load progress"
+  },
+  unit: {
+    kg: "kg",
+    reps: "reps"
   },
   reps: {
     range: "{low}–{high}",

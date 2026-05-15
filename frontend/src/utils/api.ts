@@ -333,3 +333,70 @@ export function completeSession(
 export function abandonSession(sessionId: string) {
   return request<void>(`/api/sessions/${sessionId}`, { method: "DELETE" });
 }
+
+export interface ApiBodyMetric {
+  id: string;
+  date: string;
+  weight: number | null;
+  bodyFat: number | null;
+  notes: string | null;
+}
+
+export function getMetrics(limit = 50) {
+  return request<{ metrics: ApiBodyMetric[] }>(`/api/metrics?limit=${limit}`);
+}
+
+export function createMetric(payload: {
+  date?: string;
+  weight?: number | null;
+  bodyFat?: number | null;
+  notes?: string | null;
+}) {
+  return request<{ metric: ApiBodyMetric }>("/api/metrics", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteMetric(id: string) {
+  return request<void>(`/api/metrics/${id}`, { method: "DELETE" });
+}
+
+export interface ApiDashboardStats {
+  completedSessions: number;
+  weekSessionsCount: number;
+  weekVolume: number;
+  weekMinutes: number;
+  streak: number;
+}
+
+export interface ApiPersonalRecord {
+  exerciseId: string;
+  slug: string;
+  nameEn: string;
+  nameRu: string | null;
+  slotName: string;
+  weight: number;
+  reps: number;
+}
+
+export interface ApiCalendarDay {
+  date: string;
+  trained: boolean;
+}
+
+export interface ApiWeightPoint {
+  date: string;
+  weight: number;
+}
+
+export interface ApiDashboard {
+  stats: ApiDashboardStats;
+  weightHistory: ApiWeightPoint[];
+  calendar: ApiCalendarDay[];
+  personalRecords: ApiPersonalRecord[];
+}
+
+export function getDashboard() {
+  return request<ApiDashboard>("/api/dashboard");
+}
