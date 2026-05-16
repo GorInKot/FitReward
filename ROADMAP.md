@@ -335,11 +335,11 @@ Conversational layer для объяснений и советов.
 
 ---
 
-## Фаза 13. Polish / DX (P3)
+## Фаза 13. Polish / DX (P3) — 🟡 В ПРОЦЕССЕ
 
-- [ ] Очистить неиспользуемые stores и заглушечные хуки фронта
+- [x] Очистить неиспользуемые stores и заглушечные хуки фронта (удалены useWorkout, useProgress, authStore, workoutStore, progressStore — мёртвый скаффолд)
+- [x] Haptic feedback через `@twa-dev/sdk` — `utils/haptics.ts`, отклик на старт тренировки, лог сета, завершение упражнения/сессии, появление ачивки
 - [ ] Loading skeletons
 - [ ] Тост-нотификации для ошибок API
-- [ ] Haptic feedback через `@twa-dev/sdk`
 - [ ] Тёмная/светлая тема в соответствии с темой Telegram
 - [ ] README — реальные инструкции по локалу и деплою

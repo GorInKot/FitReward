@@ -15,6 +15,7 @@ import {
 import { useTranslation, TranslateFn } from "../i18n";
 import { formatDayName, formatDayLabel } from "../utils/dayName";
 import { exerciseName } from "../utils/exerciseName";
+import { hapticImpact, hapticSuccess } from "../utils/haptics";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
 
@@ -57,6 +58,7 @@ export default function Workout() {
       setBusy(true);
       setError(null);
       const { session: fresh } = await startSession(nextDay.id);
+      hapticImpact("medium");
       setSession(fresh);
       setNextDay(null);
     } catch (err) {
@@ -85,6 +87,7 @@ export default function Workout() {
     try {
       setBusy(true);
       await completeSession(session.id, { perceivedFatigue });
+      hapticSuccess();
       await load();
       navigate("/progress");
     } catch (err) {
@@ -189,6 +192,7 @@ function ActiveSession({
         weight: input.weight,
         rir: input.rir
       });
+      hapticImpact("light");
       patchExerciseLocally(exercise.id, (e) => ({ ...e, setLogs: [...e.setLogs, set] }));
       setError(null);
     } catch (err) {
@@ -212,6 +216,7 @@ function ActiveSession({
   async function handleCompleteExercise(exercise: ApiSessionExercise) {
     try {
       const { sessionExercise } = await completeExercise(session.id, exercise.id);
+      hapticSuccess();
       patchExerciseLocally(exercise.id, (e) => ({ ...e, completedAt: sessionExercise.completedAt }));
       setError(null);
     } catch (err) {

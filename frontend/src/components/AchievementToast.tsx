@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { useAchievementStore } from "../store/achievementStore";
 import { useTranslation } from "../i18n";
+import { hapticSuccess } from "../utils/haptics";
 
 /**
  * Bottom-anchored toast that surfaces the first un-notified achievement.
@@ -11,6 +13,13 @@ export default function AchievementToast() {
   const dismiss = useAchievementStore((s) => s.dismissToast);
 
   const next = pending[0];
+
+  useEffect(() => {
+    if (next) {
+      hapticSuccess();
+    }
+  }, [next?.key]);
+
   if (!next) return null;
 
   const title = t(`achievement.${next.key}.title`);
