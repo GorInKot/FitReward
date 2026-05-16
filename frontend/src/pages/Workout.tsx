@@ -13,6 +13,7 @@ import {
   startSession
 } from "../utils/api";
 import { useTranslation, TranslateFn } from "../i18n";
+import { formatDayName, formatDayLabel } from "../utils/dayName";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
 
@@ -105,7 +106,7 @@ export default function Workout() {
             <>
               <p className="mt-1 text-sm text-slate-400">
                 {t("workout.nextDay", {
-                  name: t("day.dayN", { n: nextDay.order, name: t(nextDay.name) })
+                  name: formatDayName(nextDay.name, nextDay.order, t)
                 })}
               </p>
               <button
@@ -257,7 +258,7 @@ function ActiveSession({
     <section className="space-y-4">
       <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
         <p className="text-xs uppercase tracking-wider text-emerald-300">{t("workout.activeSession")}</p>
-        <h2 className="mt-1 text-xl font-semibold">{t(session.dayName)}</h2>
+        <h2 className="mt-1 text-xl font-semibold">{formatDayLabel(session.dayName, t)}</h2>
         <p className="mt-1 text-sm text-slate-400">
           {t("workout.progress", { done: completedCount, total })}
         </p>

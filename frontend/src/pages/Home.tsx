@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ApiDashboard, getDashboard, getNextProgramDay } from "../utils/api";
 import { useTranslation } from "../i18n";
 import { useProfileStore } from "../store/profileStore";
+import { formatDayName } from "../utils/dayName";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -44,9 +45,7 @@ export default function Home() {
         {nextDay ? (
           <>
             <h2 className="mt-1 text-xl font-bold">
-              {t("home.nextWorkout", {
-                name: t("day.dayN", { n: nextDay.order, name: t(nextDay.name) })
-              })}
+              {t("home.nextWorkout", { name: formatDayName(nextDay.name, nextDay.order, t) })}
             </h2>
             <button
               onClick={() => navigate("/workout")}

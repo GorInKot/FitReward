@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ApiProgram, ApiProgramDay, getCurrentProgram, regenerateProgram } from "../utils/api";
 import { useTranslation } from "../i18n";
+import { formatDayName } from "../utils/dayName";
 
 export default function Plans() {
   const { t } = useTranslation();
@@ -96,7 +97,7 @@ export default function Plans() {
                 isActive ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-300"
               }`}
             >
-              {t("day.dayN", { n: day.order, name: t(day.name) })}
+              {formatDayName(day.name, day.order, t)}
             </button>
           );
         })}
@@ -112,7 +113,7 @@ function DayDetail({ day }: { day: ApiProgramDay }) {
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
       <h3 className="text-sm font-semibold text-slate-300">
-        {t("day.dayN", { n: day.order, name: t(day.name) })}
+        {formatDayName(day.name, day.order, t)}
       </h3>
       <ul className="mt-3 space-y-2">
         {day.exercises.map((slot) => {
