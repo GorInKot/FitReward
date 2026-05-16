@@ -38,38 +38,38 @@ export default function AppGuide() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface text-ink">
       <div className="flex items-center justify-between p-4">
         <div className="flex gap-1.5">
           {STEPS.map((s, i) => (
             <span
               key={s}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? "w-6 bg-emerald-400" : "w-1.5 bg-slate-700"
+                i === step ? "w-6 bg-emerald-400" : "w-1.5 bg-elevated"
               }`}
             />
           ))}
         </div>
-        <button onClick={finish} className="text-xs text-slate-400">
+        <button onClick={finish} className="text-xs text-ink-faint">
           {t("guide.skip")}
         </button>
       </div>
 
       <div className="flex flex-1 flex-col justify-center px-6 pb-6">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="rounded-2xl border border-hairline bg-panel p-6">
           {!isFirst && (
-            <span className="inline-block rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+            <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
               {t(`guide.${current}.tag`)}
             </span>
           )}
           <h2 className="mt-3 text-2xl font-bold">{t(`guide.${current}.title`)}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-300">{t(`guide.${current}.body`)}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-soft">{t(`guide.${current}.body`)}</p>
         </div>
       </div>
 
       <div className="flex gap-2 p-4">
         {!isFirst && (
-          <button onClick={back} className="flex-1 rounded-xl bg-slate-800 px-4 py-3 text-sm">
+          <button onClick={back} className="flex-1 rounded-xl bg-elevated px-4 py-3 text-sm">
             {t("common.back")}
           </button>
         )}

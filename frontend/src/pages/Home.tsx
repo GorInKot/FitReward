@@ -4,6 +4,7 @@ import { ApiDashboard, getDashboard, getNextProgramDay } from "../utils/api";
 import { useTranslation } from "../i18n";
 import { useProfileStore } from "../store/profileStore";
 import { formatDayName } from "../utils/dayName";
+import Skeleton from "../components/Skeleton";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -35,6 +36,15 @@ export default function Home() {
 
   const greetingName = profile?.firstName ?? "";
 
+  if (loading && !dashboard) {
+    return (
+      <section className="space-y-4">
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-24 rounded-2xl" />
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-4">
       <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-4 text-slate-950">
@@ -49,7 +59,7 @@ export default function Home() {
             </h2>
             <button
               onClick={() => navigate("/workout")}
-              className="mt-3 rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-emerald-300"
+              className="mt-3 rounded-xl bg-surface px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-300"
             >
               {t("home.startWorkout")}
             </button>
@@ -60,9 +70,9 @@ export default function Home() {
       </div>
 
       {dashboard?.fatigue.status === "elevated" && (
-        <article className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
-          <h3 className="text-sm font-semibold text-amber-200">{t("fatigue.bannerTitle")}</h3>
-          <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+        <article className="rounded-2xl border border-amber-400 bg-amber-100 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
+          <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200">{t("fatigue.bannerTitle")}</h3>
+          <ul className="mt-2 space-y-1 text-xs text-amber-700 dark:text-amber-100/90">
             {dashboard.fatigue.reasons.map((reason, i) => {
               const params: Record<string, string | number> = { ...(reason.params ?? {}) };
               if (typeof params.slot === "string") {
@@ -76,13 +86,13 @@ export default function Home() {
               );
             })}
           </ul>
-          <p className="mt-2 text-xs text-amber-200/80">{t("fatigue.bannerHint")}</p>
+          <p className="mt-2 text-xs text-amber-700 dark:text-amber-200/80">{t("fatigue.bannerHint")}</p>
         </article>
       )}
 
       {dashboard && (
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h3 className="text-sm font-semibold text-slate-300">{t("home.weekTitle")}</h3>
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
+          <h3 className="text-sm font-semibold text-ink-soft">{t("home.weekTitle")}</h3>
           <div className="mt-3 grid grid-cols-3 gap-2">
             <Stat label={t("home.statSessions")} value={String(dashboard.stats.weekSessionsCount)} />
             <Stat label={t("home.statStreak")} value={t("home.streakDays", { n: dashboard.stats.streak })} />
@@ -90,18 +100,14 @@ export default function Home() {
           </div>
         </article>
       )}
-
-      {loading && !dashboard && (
-        <p className="text-xs text-slate-500">{t("app.loading")}</p>
-      )}
     </section>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-800 p-3 text-center">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="rounded-xl bg-elevated p-3 text-center">
+      <p className="text-xs text-ink-faint">{label}</p>
       <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   );

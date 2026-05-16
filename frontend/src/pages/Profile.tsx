@@ -5,6 +5,8 @@ import { getTelegramUsername } from "../utils/telegram";
 import { useProfileStore } from "../store/profileStore";
 import { useAchievementStore } from "../store/achievementStore";
 import { useGuideStore } from "../store/guideStore";
+import { ThemeMode, useThemeStore } from "../store/themeStore";
+import { toastError } from "../store/toastStore";
 import { Locale, useTranslation } from "../i18n";
 
 export default function Profile() {
@@ -15,7 +17,8 @@ export default function Profile() {
   const setProfile = useProfileStore((s) => s.setProfile);
   const achievements = useAchievementStore((s) => s.achievements);
   const openGuide = useGuideStore((s) => s.openGuide);
-  const [error, setError] = useState<string | null>(null);
+  const themeMode = useThemeStore((s) => s.mode);
+  const setThemeMode = useThemeStore((s) => s.setMode);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -59,9 +62,8 @@ export default function Profile() {
       });
       setProfile(updated);
       setIsEditing(false);
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -72,17 +74,16 @@ export default function Profile() {
     try {
       const updated = await updateProfile(patch);
       setProfile(updated);
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     }
   }
 
   return (
     <section className="space-y-4">
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
         <h2 className="text-xl font-semibold">{t("profile.title")}</h2>
-        <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        <p className="mt-1 text-sm text-ink-faint">{subtitle}</p>
         {isEditing && (
           <div className="mt-4 grid grid-cols-2 gap-2">
             <Field label={t("profile.fields.firstName")} value={firstName} onChange={setFirstName} />
@@ -95,16 +96,15 @@ export default function Profile() {
         <button
           onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
           disabled={saving || loading}
-          className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3 rounded-xl bg-elevated px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
           {saving ? t("common.saving") : isEditing ? t("common.save") : t("common.edit")}
         </button>
-        {loading && <p className="mt-2 text-xs text-slate-400">{t("app.loading")}</p>}
-        {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
+        {loading && <p className="mt-2 text-xs text-ink-faint">{t("app.loading")}</p>}
       </article>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("profile.trainingProfile")}</h3>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("profile.trainingProfile")}</h3>
         {profile?.onboardingCompleted ? (
           <ul className="mt-3 space-y-2 text-sm">
             {profile.primaryGoal && <Row label={t("profile.row.goal")} value={t(`goal.${profile.primaryGoal}`)} />}
@@ -129,17 +129,17 @@ export default function Profile() {
             )}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-slate-400">{t("profile.notOnboarded")}</p>
+          <p className="mt-3 text-sm text-ink-faint">{t("profile.notOnboarded")}</p>
         )}
-        <button onClick={() => navigate("/onboarding")} className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm">
+        <button onClick={() => navigate("/onboarding")} className="mt-3 rounded-xl bg-elevated px-4 py-2 text-sm">
           {profile?.onboardingCompleted ? t("profile.restartOnboarding") : t("profile.startOnboarding")}
         </button>
       </article>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-300">{t("achievement.sectionTitle")}</h3>
-          <span className="text-xs text-slate-500">
+          <h3 className="text-sm font-semibold text-ink-soft">{t("achievement.sectionTitle")}</h3>
+          <span className="text-xs text-ink-faint">
             {t("achievement.progress", {
               unlocked: achievements.filter((a) => a.unlockedAt).length,
               total: achievements.length
@@ -156,17 +156,21 @@ export default function Profile() {
                   className={`rounded-xl border p-3 ${
                     unlocked
                       ? "border-emerald-500/40 bg-emerald-500/10"
-                      : "border-slate-800 bg-slate-800/40 opacity-60"
+                      : "border-hairline bg-elevated/40 opacity-60"
                   }`}
                 >
                   <p className="text-base">{unlocked ? "🏆" : t("achievement.locked")}</p>
-                  <p className={`mt-1 text-sm font-medium ${unlocked ? "text-emerald-100" : "text-slate-300"}`}>
+                  <p
+                    className={`mt-1 text-sm font-medium ${
+                      unlocked ? "text-emerald-800 dark:text-emerald-100" : "text-ink-soft"
+                    }`}
+                  >
                     {t(`achievement.${a.key}.title`)}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-slate-400">
+                  <p className="mt-0.5 text-[10px] text-ink-faint">
                     {t(`achievement.${a.key}.description`)}
                   </p>
-                  <p className="mt-1 text-[10px] text-amber-300">
+                  <p className="mt-1 text-[10px] text-amber-700 dark:text-amber-300">
                     {t("achievement.rewardSuffix", { n: a.reward })}
                   </p>
                 </li>
@@ -176,9 +180,9 @@ export default function Profile() {
         )}
       </article>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("reminders.title")}</h3>
-        <p className="mt-1 text-xs text-slate-400">{t("reminders.description")}</p>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("reminders.title")}</h3>
+        <p className="mt-1 text-xs text-ink-faint">{t("reminders.description")}</p>
         <div className="mt-3 flex items-center justify-between">
           <span className="text-sm">{t("reminders.toggleLabel")}</span>
           <button
@@ -187,20 +191,20 @@ export default function Profile() {
             className={`rounded-xl px-4 py-2 text-sm disabled:opacity-50 ${
               profile?.remindersEnabled ?? true
                 ? "bg-emerald-500 text-slate-950"
-                : "bg-slate-800 text-slate-300"
+                : "bg-elevated text-ink-soft"
             }`}
           >
             {profile?.remindersEnabled ?? true ? t("reminders.on") : t("reminders.off")}
           </button>
         </div>
         {(profile?.remindersEnabled ?? true) && (
-          <label className="mt-3 flex items-center justify-between text-sm text-slate-300">
+          <label className="mt-3 flex items-center justify-between text-sm text-ink-soft">
             {t("reminders.timeLabel")}
             <select
               value={profile?.reminderHour ?? 18}
               onChange={(event) => patchReminders({ reminderHour: Number(event.target.value) })}
               disabled={loading || !profile}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400 disabled:opacity-50"
+              className="rounded-lg border border-hairline bg-elevated px-3 py-2 text-sm text-ink outline-none focus:border-emerald-400 disabled:opacity-50"
             >
               {Array.from({ length: 24 }, (_, h) => (
                 <option key={h} value={h}>
@@ -211,21 +215,38 @@ export default function Profile() {
           </label>
         )}
         {profile?.timezone && (
-          <p className="mt-2 text-[10px] text-slate-500">
+          <p className="mt-2 text-[10px] text-ink-faint">
             {t("reminders.timezoneNote", { tz: profile.timezone })}
           </p>
         )}
       </article>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("language.title")}</h3>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("theme.title")}</h3>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {(["auto", "light", "dark"] as ThemeMode[]).map((value) => (
+            <button
+              key={value}
+              onClick={() => setThemeMode(value)}
+              className={`rounded-xl px-3 py-2 text-sm ${
+                themeMode === value ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-soft"
+              }`}
+            >
+              {t(`theme.${value}`)}
+            </button>
+          ))}
+        </div>
+      </article>
+
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("language.title")}</h3>
         <div className="mt-3 grid grid-cols-2 gap-2">
           {(["ru", "en"] as Locale[]).map((value) => (
             <button
               key={value}
               onClick={() => setLocale(value)}
               className={`rounded-xl px-4 py-2 text-sm ${
-                locale === value ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                locale === value ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-soft"
               }`}
             >
               {t(`language.${value}`)}
@@ -234,10 +255,10 @@ export default function Profile() {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("guide.reopenTitle")}</h3>
-        <p className="mt-1 text-xs text-slate-400">{t("guide.reopenDescription")}</p>
-        <button onClick={openGuide} className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm">
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("guide.reopenTitle")}</h3>
+        <p className="mt-1 text-xs text-ink-faint">{t("guide.reopenDescription")}</p>
+        <button onClick={openGuide} className="mt-3 rounded-xl bg-elevated px-4 py-2 text-sm">
           {t("guide.reopenButton")}
         </button>
       </article>
@@ -257,12 +278,12 @@ function Field({
   inputMode?: "numeric" | "decimal";
 }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-slate-400">
+    <label className="flex flex-col gap-1 text-xs text-ink-faint">
       {label}
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
+        className="rounded-lg border border-hairline bg-elevated px-3 py-2 text-sm text-ink outline-none focus:border-emerald-400"
         inputMode={inputMode}
       />
     </label>
@@ -271,9 +292,9 @@ function Field({
 
 function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <li className="flex items-center justify-between rounded-xl bg-slate-800 p-3">
-      <span className="text-slate-400">{label}</span>
-      <span className={highlight ? "font-semibold text-emerald-300" : ""}>{value}</span>
+    <li className="flex items-center justify-between rounded-xl bg-elevated p-3">
+      <span className="text-ink-faint">{label}</span>
+      <span className={highlight ? "font-semibold text-emerald-600 dark:text-emerald-300" : ""}>{value}</span>
     </li>
   );
 }

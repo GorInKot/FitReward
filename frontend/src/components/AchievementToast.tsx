@@ -26,21 +26,21 @@ export default function AchievementToast() {
   const description = t(`achievement.${next.key}.description`);
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 mx-auto max-w-md rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 shadow-xl backdrop-blur">
-      <p className="text-xs font-semibold uppercase tracking-wider text-amber-200">
+    <div className="fixed bottom-20 left-4 right-4 z-50 mx-auto max-w-md rounded-2xl border border-amber-400 bg-amber-100 p-4 shadow-xl backdrop-blur dark:border-amber-500/40 dark:bg-amber-500/15">
+      <p className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-200">
         {t("achievement.toastTitle")}
       </p>
       <div className="mt-1 flex items-start justify-between gap-3">
         <div>
-          <p className="text-base font-bold text-amber-100">🏆 {title}</p>
-          <p className="mt-0.5 text-xs text-amber-100/80">{description}</p>
-          <p className="mt-1 text-xs text-amber-300">
+          <p className="text-base font-bold text-amber-900 dark:text-amber-100">🏆 {title}</p>
+          <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-100/80">{description}</p>
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
             {t("achievement.rewardSuffix", { n: next.reward })}
           </p>
         </div>
         <button
           onClick={() => void dismiss(next.key)}
-          className="rounded-lg bg-amber-500/30 px-3 py-1 text-xs text-amber-50"
+          className="rounded-lg bg-amber-500/30 px-3 py-1 text-xs text-amber-900 dark:text-amber-50"
         >
           {t("common.close")}
         </button>

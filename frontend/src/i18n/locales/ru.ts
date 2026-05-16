@@ -33,6 +33,12 @@ export const ru = {
     ru: "Русский",
     en: "English"
   },
+  theme: {
+    title: "Тема",
+    auto: "Авто",
+    light: "Светлая",
+    dark: "Тёмная"
+  },
   reminders: {
     title: "Напоминания",
     description: "Бот напомнит в тренировочный день, если ты ещё не начал тренировку.",

@@ -9,13 +9,14 @@ import {
 } from "../utils/api";
 import { useTranslation } from "../i18n";
 import { exerciseName } from "../utils/exerciseName";
+import { toastError } from "../store/toastStore";
+import Skeleton from "../components/Skeleton";
 
 export default function Progress() {
   const { t, locale } = useTranslation();
   const [dashboard, setDashboard] = useState<ApiDashboard | null>(null);
   const [metrics, setMetrics] = useState<ApiBodyMetric[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [weight, setWeight] = useState("");
   const [bodyFat, setBodyFat] = useState("");
@@ -28,9 +29,8 @@ export default function Progress() {
       const [dash, m] = await Promise.all([getDashboard(), getMetrics(50)]);
       setDashboard(dash);
       setMetrics(m.metrics);
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("progress.loadFailed"));
+      toastError(err instanceof Error ? err.message : t("progress.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export default function Progress() {
       setShowAdd(false);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -66,12 +66,22 @@ export default function Progress() {
       await deleteMetric(id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     }
   }
 
   if (loading && !dashboard) {
-    return <p className="text-sm text-slate-400">{t("app.loading")}</p>;
+    return (
+      <section className="space-y-4">
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
+        </div>
+        <Skeleton className="h-40 rounded-2xl" />
+        <Skeleton className="h-32 rounded-2xl" />
+      </section>
+    );
   }
 
   return (
@@ -84,17 +94,17 @@ export default function Progress() {
         </div>
       )}
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("progress.weightTitle")}</h3>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("progress.weightTitle")}</h3>
         {dashboard && dashboard.weightHistory.length > 0 ? (
           <WeightChart points={dashboard.weightHistory} locale={locale} />
         ) : (
-          <p className="mt-3 text-xs text-slate-500">{t("progress.weightEmpty")}</p>
+          <p className="mt-3 text-xs text-ink-faint">{t("progress.weightEmpty")}</p>
         )}
         {!showAdd ? (
           <button
             onClick={() => setShowAdd(true)}
-            className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm"
+            className="mt-3 rounded-xl bg-elevated px-4 py-2 text-sm"
           >
             {t("progress.addMetric")}
           </button>
@@ -108,7 +118,7 @@ export default function Progress() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowAdd(false)}
-                className="flex-1 rounded-xl bg-slate-800 px-3 py-2 text-sm"
+                className="flex-1 rounded-xl bg-elevated px-3 py-2 text-sm"
               >
                 {t("progress.cancel")}
               </button>
@@ -125,26 +135,26 @@ export default function Progress() {
       </article>
 
       {dashboard && (
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h3 className="text-sm font-semibold text-slate-300">{t("progress.calendarTitle")}</h3>
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
+          <h3 className="text-sm font-semibold text-ink-soft">{t("progress.calendarTitle")}</h3>
           <Calendar days={dashboard.calendar} />
         </article>
       )}
 
       {dashboard && (
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h3 className="text-sm font-semibold text-slate-300">{t("progress.prTitle")}</h3>
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
+          <h3 className="text-sm font-semibold text-ink-soft">{t("progress.prTitle")}</h3>
           {dashboard.personalRecords.length === 0 ? (
-            <p className="mt-3 text-xs text-slate-500">{t("progress.prEmpty")}</p>
+            <p className="mt-3 text-xs text-ink-faint">{t("progress.prEmpty")}</p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
               {dashboard.personalRecords.map((pr) => (
-                <li key={pr.exerciseId} className="flex items-center justify-between rounded-xl bg-slate-800 p-3">
+                <li key={pr.exerciseId} className="flex items-center justify-between rounded-xl bg-elevated p-3">
                   <div>
-                    <p className="text-xs text-slate-400">{t(pr.slotName)}</p>
+                    <p className="text-xs text-ink-faint">{t(pr.slotName)}</p>
                     <p className="mt-0.5">{exerciseName(pr, locale)}</p>
                   </div>
-                  <span className="font-semibold text-emerald-300">
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-300">
                     {t("progress.prValue", { weight: pr.weight, reps: pr.reps })}
                   </span>
                 </li>
@@ -154,20 +164,23 @@ export default function Progress() {
         </article>
       )}
 
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <h3 className="text-sm font-semibold text-slate-300">{t("progress.historyTitle")}</h3>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("progress.historyTitle")}</h3>
         {metrics.length === 0 ? (
-          <p className="mt-3 text-xs text-slate-500">{t("progress.historyEmpty")}</p>
+          <p className="mt-3 text-xs text-ink-faint">{t("progress.historyEmpty")}</p>
         ) : (
           <ul className="mt-3 space-y-1 text-xs">
             {metrics.map((m) => (
-              <li key={m.id} className="flex items-center justify-between rounded-lg bg-slate-800 px-3 py-2">
-                <span className="text-slate-400">{new Date(m.date).toLocaleDateString(locale)}</span>
-                <span className="font-medium text-white">
+              <li key={m.id} className="flex items-center justify-between rounded-lg bg-elevated px-3 py-2">
+                <span className="text-ink-faint">{new Date(m.date).toLocaleDateString(locale)}</span>
+                <span className="font-medium text-ink">
                   {m.weight !== null ? `${m.weight} ${t("unit.kg")}` : ""}
                   {m.bodyFat !== null ? ` · ${m.bodyFat}%` : ""}
                 </span>
-                <button onClick={() => handleDelete(m.id)} className="text-rose-300 hover:text-rose-200">
+                <button
+                  onClick={() => handleDelete(m.id)}
+                  className="text-rose-500 hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200"
+                >
                   ✕
                 </button>
               </li>
@@ -175,16 +188,14 @@ export default function Progress() {
           </ul>
         )}
       </article>
-
-      {error && <p className="rounded-xl bg-rose-900/40 p-3 text-sm text-rose-200">{error}</p>}
     </section>
   );
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-center">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="rounded-xl border border-hairline bg-panel p-3 text-center">
+      <p className="text-xs text-ink-faint">{label}</p>
       <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   );
@@ -202,12 +213,12 @@ function Field({
   inputMode?: "numeric" | "decimal";
 }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-slate-400">
+    <label className="flex flex-col gap-1 text-xs text-ink-faint">
       {label}
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
+        className="rounded-lg border border-hairline bg-elevated px-3 py-2 text-sm text-ink outline-none focus:border-emerald-400"
         inputMode={inputMode}
       />
     </label>
@@ -230,7 +241,7 @@ function WeightChart({
 
   return (
     <>
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-ink-faint">
         {last.weight} kg · {new Date(last.date).toLocaleDateString(locale)}
       </p>
       <div className="mt-3 flex items-end gap-1">
@@ -239,7 +250,7 @@ function WeightChart({
           return (
             <div key={point.date} className="flex flex-1 flex-col items-center gap-1">
               <div className="w-full rounded-md bg-emerald-400" style={{ height: `${heightPct}px` }} />
-              <span className="text-[8px] text-slate-500">
+              <span className="text-[8px] text-ink-faint">
                 {new Date(point.date).toLocaleDateString(locale, { day: "numeric", month: "numeric" })}
               </span>
             </div>
@@ -257,7 +268,7 @@ function Calendar({ days }: { days: { date: string; trained: boolean }[] }) {
         <div
           key={day.date}
           className={`aspect-square rounded-md text-center text-[10px] leading-[1.8] ${
-            day.trained ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-500"
+            day.trained ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-faint"
           }`}
           title={day.date}
         >

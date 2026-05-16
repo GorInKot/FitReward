@@ -3,5 +3,27 @@
 @tailwind utilities;
 
 :root {
+  --c-surface: 248 250 252;
+  --c-panel: 255 255 255;
+  --c-elevated: 241 245 249;
+  --c-hairline: 226 232 240;
+  --c-ink: 15 23 42;
+  --c-ink-soft: 71 85 105;
+  --c-ink-faint: 100 116 139;
+  color-scheme: light;
+}
+
+.dark {
+  --c-surface: 2 6 23;
+  --c-panel: 15 23 42;
+  --c-elevated: 30 41 59;
+  --c-hairline: 30 41 59;
+  --c-ink: 255 255 255;
+  --c-ink-soft: 203 213 225;
+  --c-ink-faint: 148 163 184;
   color-scheme: dark;
+}
+
+body {
+  background-color: rgb(var(--c-surface));
 }

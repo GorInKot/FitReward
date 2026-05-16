@@ -33,6 +33,12 @@ export const en = {
     ru: "Русский",
     en: "English"
   },
+  theme: {
+    title: "Theme",
+    auto: "Auto",
+    light: "Light",
+    dark: "Dark"
+  },
   reminders: {
     title: "Reminders",
     description: "The bot nudges you on training days if you haven't started a workout yet.",

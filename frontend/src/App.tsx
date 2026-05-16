@@ -14,6 +14,7 @@ import { useTranslation } from "./i18n";
 import { updateProfile } from "./utils/api";
 import AchievementToast from "./components/AchievementToast";
 import AppGuide from "./components/AppGuide";
+import Toast from "./components/Toast";
 
 export default function App() {
   useTelegram();
@@ -92,7 +93,7 @@ export default function App() {
 
   if (loading && !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+      <div className="flex min-h-screen items-center justify-center bg-surface text-ink-soft">
         {t("app.loading")}
       </div>
     );
@@ -100,15 +101,15 @@ export default function App() {
 
   if (error && !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-rose-300">
+      <div className="flex min-h-screen items-center justify-center bg-surface px-6 text-center text-rose-600 dark:text-rose-300">
         {t("app.loadingProfile", { error })}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/90 p-4 backdrop-blur">
+    <div className="min-h-screen bg-surface text-ink">
+      <header className="sticky top-0 z-10 border-b border-hairline bg-surface/90 p-4 backdrop-blur">
         <h1 className="text-lg font-semibold">{t("app.title")}</h1>
       </header>
       <main className="mx-auto max-w-lg p-4 pb-24">
@@ -122,13 +123,13 @@ export default function App() {
         </Routes>
       </main>
       {!isOnboardingRoute && (
-        <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-slate-800 bg-slate-900/95 p-3 text-xs">
+        <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-hairline bg-panel/95 p-3 text-xs">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-full px-3 py-2 ${isActive ? "bg-emerald-500 text-slate-950" : "text-slate-300"}`
+                `rounded-full px-3 py-2 ${isActive ? "bg-emerald-500 text-slate-950" : "text-ink-soft"}`
               }
             >
               {item.label}
@@ -138,6 +139,7 @@ export default function App() {
       )}
       <AchievementToast />
       <AppGuide />
+      <Toast />
     </div>
   );
 }

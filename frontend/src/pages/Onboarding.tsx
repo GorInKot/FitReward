@@ -12,6 +12,7 @@ import {
 } from "../utils/api";
 import { useProfileStore } from "../store/profileStore";
 import { useTranslation } from "../i18n";
+import { toastError } from "../store/toastStore";
 
 const GOAL_VALUES: PrimaryGoal[] = [
   "MUSCLE_GAIN",
@@ -49,7 +50,6 @@ export default function Onboarding() {
   const [environment, setEnvironment] = useState<TrainingEnvironment | null>(null);
   const [limitations, setLimitations] = useState<Limitation[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<
     { suggested: TrainingStructure; reasons: RecommendationReason[] } | null
   >(null);
@@ -84,7 +84,6 @@ export default function Onboarding() {
     };
     try {
       setSubmitting(true);
-      setError(null);
       const response = await submitOnboarding(payload);
       setProfile(response.profile);
       setResult({
@@ -92,7 +91,7 @@ export default function Onboarding() {
         reasons: response.recommendation.reasons
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -107,12 +106,12 @@ export default function Onboarding() {
             {t("onboarding.result.recommendTitle", { structure: t(`structure.${result.suggested}`) })}
           </h2>
         </div>
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h3 className="text-sm font-semibold text-slate-300">{t("onboarding.result.whyTitle")}</h3>
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
+          <h3 className="text-sm font-semibold text-ink-soft">{t("onboarding.result.whyTitle")}</h3>
           <ul className="mt-3 space-y-2 text-sm">
             {result.reasons.map((reason, i) => (
-              <li key={i} className="flex gap-2 rounded-xl bg-slate-800 p-3">
-                <span className="text-emerald-300">·</span>
+              <li key={i} className="flex gap-2 rounded-xl bg-elevated p-3">
+                <span className="text-emerald-600 dark:text-emerald-300">·</span>
                 <span>{t(reason.key, reason.params)}</span>
               </li>
             ))}
@@ -131,10 +130,10 @@ export default function Onboarding() {
   return (
     <section className="space-y-4">
       <div className="space-y-2">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-ink-faint">
           {t("onboarding.progress", { step, total: TOTAL_STEPS })}
         </p>
-        <div className="h-1 rounded-full bg-slate-800">
+        <div className="h-1 rounded-full bg-elevated">
           <div
             className="h-full rounded-full bg-emerald-400 transition-all"
             style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
@@ -217,13 +216,11 @@ export default function Onboarding() {
         </StepWrapper>
       )}
 
-      {error && <p className="rounded-xl bg-rose-900/40 p-3 text-sm text-rose-200">{error}</p>}
-
       <div className="flex gap-2 pt-2">
         {step > 1 && (
           <button
             onClick={() => setStep((s) => Math.max(1, s - 1))}
-            className="flex-1 rounded-xl bg-slate-800 px-4 py-3 text-sm"
+            className="flex-1 rounded-xl bg-elevated px-4 py-3 text-sm"
           >
             {t("common.back")}
           </button>
@@ -263,7 +260,7 @@ function StepWrapper({
     <div className="space-y-3">
       <div>
         <h2 className="text-xl font-semibold">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-slate-400">{subtitle}</p>}
+        {subtitle && <p className="mt-1 text-sm text-ink-faint">{subtitle}</p>}
       </div>
       <div className="space-y-2">{children}</div>
     </div>
@@ -285,11 +282,11 @@ function OptionCard({
     <button
       onClick={onClick}
       className={`w-full rounded-xl border p-3 text-left transition ${
-        selected ? "border-emerald-400 bg-emerald-500/10" : "border-slate-800 bg-slate-900 hover:border-slate-600"
+        selected ? "border-emerald-400 bg-emerald-500/10" : "border-hairline bg-panel hover:border-hairline"
       }`}
     >
-      <p className={`text-sm font-medium ${selected ? "text-emerald-300" : "text-white"}`}>{label}</p>
-      {hint && <p className="mt-0.5 text-xs text-slate-400">{hint}</p>}
+      <p className={`text-sm font-medium ${selected ? "text-emerald-700 dark:text-emerald-300" : "text-ink"}`}>{label}</p>
+      {hint && <p className="mt-0.5 text-xs text-ink-faint">{hint}</p>}
     </button>
   );
 }

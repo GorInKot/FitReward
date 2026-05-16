@@ -3,12 +3,13 @@ import { ApiProgram, ApiProgramDay, getCurrentProgram, regenerateProgram } from 
 import { useTranslation } from "../i18n";
 import { formatDayName } from "../utils/dayName";
 import { exerciseName } from "../utils/exerciseName";
+import { toastError } from "../store/toastStore";
+import Skeleton from "../components/Skeleton";
 
 export default function Plans() {
   const { t } = useTranslation();
   const [program, setProgram] = useState<ApiProgram | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
 
@@ -21,9 +22,8 @@ export default function Plans() {
         if (program && program.days.length > 0) {
           setActiveDayId(program.days[0].id);
         }
-        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("plans.errorLoad"));
+        toastError(err instanceof Error ? err.message : t("plans.errorLoad"));
       } finally {
         setLoading(false);
       }
@@ -39,24 +39,29 @@ export default function Plans() {
       if (fresh.days.length > 0) {
         setActiveDayId(fresh.days[0].id);
       }
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("plans.errorRegenerate"));
+      toastError(err instanceof Error ? err.message : t("plans.errorRegenerate"));
     } finally {
       setRegenerating(false);
     }
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-400">{t("plans.loading")}</p>;
+    return (
+      <section className="space-y-4">
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-9 rounded-full" />
+        <Skeleton className="h-64 rounded-2xl" />
+      </section>
+    );
   }
 
   if (!program) {
     return (
       <section className="space-y-4">
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
           <h2 className="text-xl font-semibold">{t("plans.notFoundTitle")}</h2>
-          <p className="mt-1 text-sm text-slate-400">{error ?? t("plans.notFoundSubtitle")}</p>
+          <p className="mt-1 text-sm text-ink-faint">{t("plans.notFoundSubtitle")}</p>
           <button
             onClick={handleRegenerate}
             disabled={regenerating}
@@ -73,18 +78,19 @@ export default function Plans() {
 
   return (
     <section className="space-y-4">
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <p className="text-xs uppercase tracking-wider text-emerald-300">{t("plans.activeProgram")}</p>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <p className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-300">
+          {t("plans.activeProgram")}
+        </p>
         <h2 className="mt-1 text-xl font-semibold">{t(`structure.${program.structure}`)}</h2>
-        <p className="mt-1 text-sm text-slate-400">{t("plans.daysPerWeek", { n: program.days.length })}</p>
+        <p className="mt-1 text-sm text-ink-faint">{t("plans.daysPerWeek", { n: program.days.length })}</p>
         <button
           onClick={handleRegenerate}
           disabled={regenerating}
-          className="mt-3 rounded-lg bg-slate-800 px-3 py-1.5 text-xs disabled:opacity-50"
+          className="mt-3 rounded-lg bg-elevated px-3 py-1.5 text-xs disabled:opacity-50"
         >
           {regenerating ? t("plans.regenerating") : t("plans.regenerate")}
         </button>
-        {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
       </article>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -95,7 +101,7 @@ export default function Plans() {
               key={day.id}
               onClick={() => setActiveDayId(day.id)}
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition ${
-                isActive ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                isActive ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-soft"
               }`}
             >
               {formatDayName(day.name, day.order, t)}
@@ -112,8 +118,8 @@ export default function Plans() {
 function DayDetail({ day }: { day: ApiProgramDay }) {
   const { t, locale } = useTranslation();
   return (
-    <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-      <h3 className="text-sm font-semibold text-slate-300">
+    <article className="rounded-2xl border border-hairline bg-panel p-4">
+      <h3 className="text-sm font-semibold text-ink-soft">
         {formatDayName(day.name, day.order, t)}
       </h3>
       <ul className="mt-3 space-y-2">
@@ -126,19 +132,19 @@ function DayDetail({ day }: { day: ApiProgramDay }) {
               ? t("reps.range", { low: slot.suggestedRepsLow, high: slot.suggestedRepsHigh })
               : t("reps.single", { value: slot.suggestedRepsLow });
           return (
-            <li key={slot.id} className="rounded-xl bg-slate-800 p-3">
+            <li key={slot.id} className="rounded-xl bg-elevated p-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs text-slate-400">{t(slot.slotName)}</p>
-                  <p className="mt-0.5 text-sm font-medium text-white">
+                  <p className="text-xs text-ink-faint">{t(slot.slotName)}</p>
+                  <p className="mt-0.5 text-sm font-medium text-ink">
                     {exerciseName(slot.exercise, locale)}
                   </p>
                 </div>
-                <p className="whitespace-nowrap text-right text-xs text-emerald-300">
+                <p className="whitespace-nowrap text-right text-xs text-emerald-600 dark:text-emerald-300">
                   {t("plans.suggested", { sets: slot.suggestedSets, reps: repsText })}
                 </p>
               </div>
-              <p className="mt-1 text-[10px] text-slate-500">
+              <p className="mt-1 text-[10px] text-ink-faint">
                 {t("plans.setExtra", {
                   rest: restText,
                   equipment: slot.exercise.equipment.map((e) => t(`equipment.${e}`)).join(", ")

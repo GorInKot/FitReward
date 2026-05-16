@@ -16,6 +16,8 @@ import { useTranslation, TranslateFn } from "../i18n";
 import { formatDayName, formatDayLabel } from "../utils/dayName";
 import { exerciseName } from "../utils/exerciseName";
 import { hapticImpact, hapticSuccess } from "../utils/haptics";
+import { toastError } from "../store/toastStore";
+import Skeleton from "../components/Skeleton";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
 
@@ -26,12 +28,10 @@ export default function Workout() {
   const [nextDay, setNextDay] = useState<{ id: string; name: string; order: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       const { session: active } = await getActiveSession();
       if (active) {
         setSession(active);
@@ -42,7 +42,7 @@ export default function Workout() {
         setNextDay(nextDay);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -56,13 +56,12 @@ export default function Workout() {
     if (!nextDay) return;
     try {
       setBusy(true);
-      setError(null);
       const { session: fresh } = await startSession(nextDay.id);
       hapticImpact("medium");
       setSession(fresh);
       setNextDay(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -76,7 +75,7 @@ export default function Workout() {
       await abandonSession(session.id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setBusy(false);
     }
@@ -91,24 +90,30 @@ export default function Workout() {
       await load();
       navigate("/progress");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
+      toastError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setBusy(false);
     }
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-400">{t("workout.loading")}</p>;
+    return (
+      <section className="space-y-4">
+        <Skeleton className="h-32 rounded-2xl" />
+        <Skeleton className="h-40 rounded-2xl" />
+        <Skeleton className="h-40 rounded-2xl" />
+      </section>
+    );
   }
 
   if (!session) {
     return (
       <section className="space-y-4">
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
           <h2 className="text-xl font-semibold">{t("workout.readyTitle")}</h2>
           {nextDay ? (
             <>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-ink-faint">
                 {t("workout.nextDay", {
                   name: formatDayName(nextDay.name, nextDay.order, t)
                 })}
@@ -123,13 +128,12 @@ export default function Workout() {
             </>
           ) : (
             <>
-              <p className="mt-1 text-sm text-slate-400">{t("workout.noProgram")}</p>
-              <button onClick={() => navigate("/plans")} className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm">
+              <p className="mt-1 text-sm text-ink-faint">{t("workout.noProgram")}</p>
+              <button onClick={() => navigate("/plans")} className="mt-3 rounded-xl bg-elevated px-4 py-2 text-sm">
                 {t("workout.openPlans")}
               </button>
             </>
           )}
-          {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
         </article>
       </section>
     );
@@ -142,8 +146,6 @@ export default function Workout() {
       onComplete={handleComplete}
       onAbandon={handleAbandon}
       busy={busy}
-      error={error}
-      setError={setError}
       t={t}
     />
   );
@@ -155,8 +157,6 @@ function ActiveSession({
   onComplete,
   onAbandon,
   busy,
-  error,
-  setError,
   t
 }: {
   session: ApiWorkoutSession;
@@ -164,8 +164,6 @@ function ActiveSession({
   onComplete: (perceivedFatigue: number | null) => Promise<void>;
   onAbandon: () => Promise<void>;
   busy: boolean;
-  error: string | null;
-  setError: (msg: string | null) => void;
   t: TranslateFn;
 }) {
   const completedCount = session.exercises.filter((e) => e.completedAt).length;
@@ -194,9 +192,8 @@ function ActiveSession({
       });
       hapticImpact("light");
       patchExerciseLocally(exercise.id, (e) => ({ ...e, setLogs: [...e.setLogs, set] }));
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("workout.exercise.errorLog"));
+      toastError(err instanceof Error ? err.message : t("workout.exercise.errorLog"));
     }
   }
 
@@ -207,9 +204,8 @@ function ActiveSession({
         ...e,
         setLogs: e.setLogs.filter((s) => s.id !== setId)
       }));
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("workout.exercise.errorDelete"));
+      toastError(err instanceof Error ? err.message : t("workout.exercise.errorDelete"));
     }
   }
 
@@ -218,25 +214,24 @@ function ActiveSession({
       const { sessionExercise } = await completeExercise(session.id, exercise.id);
       hapticSuccess();
       patchExerciseLocally(exercise.id, (e) => ({ ...e, completedAt: sessionExercise.completedAt }));
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("workout.exercise.errorComplete"));
+      toastError(err instanceof Error ? err.message : t("workout.exercise.errorComplete"));
     }
   }
 
   if (showCompletion) {
     return (
       <section className="space-y-4">
-        <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <article className="rounded-2xl border border-hairline bg-panel p-4">
           <h2 className="text-xl font-semibold">{t("workout.completion.title")}</h2>
-          <p className="mt-1 text-sm text-slate-400">{t("workout.completion.subtitle")}</p>
+          <p className="mt-1 text-sm text-ink-faint">{t("workout.completion.subtitle")}</p>
           <div className="mt-3 grid grid-cols-5 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
               <button
                 key={n}
                 onClick={() => setFatigue(n)}
                 className={`rounded-lg py-2 text-sm ${
-                  fatigue === n ? "bg-emerald-500 text-slate-950" : "bg-slate-800"
+                  fatigue === n ? "bg-emerald-500 text-slate-950" : "bg-elevated"
                 }`}
               >
                 {n}
@@ -244,7 +239,7 @@ function ActiveSession({
             ))}
           </div>
           <div className="mt-4 flex gap-2">
-            <button onClick={() => setShowCompletion(false)} className="flex-1 rounded-xl bg-slate-800 px-3 py-2 text-sm">
+            <button onClick={() => setShowCompletion(false)} className="flex-1 rounded-xl bg-elevated px-3 py-2 text-sm">
               {t("common.back")}
             </button>
             <button
@@ -262,13 +257,15 @@ function ActiveSession({
 
   return (
     <section className="space-y-4">
-      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <p className="text-xs uppercase tracking-wider text-emerald-300">{t("workout.activeSession")}</p>
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <p className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-300">
+          {t("workout.activeSession")}
+        </p>
         <h2 className="mt-1 text-xl font-semibold">{formatDayLabel(session.dayName, t)}</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-faint">
           {t("workout.progress", { done: completedCount, total })}
         </p>
-        <div className="mt-3 h-2 rounded-full bg-slate-800">
+        <div className="mt-3 h-2 rounded-full bg-elevated">
           <div
             className="h-full rounded-full bg-emerald-400 transition-all"
             style={{ width: total > 0 ? `${(completedCount / total) * 100}%` : "0%" }}
@@ -286,10 +283,8 @@ function ActiveSession({
         />
       ))}
 
-      {error && <p className="rounded-xl bg-rose-900/40 p-3 text-sm text-rose-200">{error}</p>}
-
       <div className="flex gap-2">
-        <button onClick={onAbandon} disabled={busy} className="flex-1 rounded-xl bg-slate-800 px-4 py-3 text-sm disabled:opacity-50">
+        <button onClick={onAbandon} disabled={busy} className="flex-1 rounded-xl bg-elevated px-4 py-3 text-sm disabled:opacity-50">
           {t("workout.abandon")}
         </button>
         <button
@@ -361,17 +356,17 @@ function ExerciseCard({
   return (
     <article
       className={`rounded-2xl border p-4 transition ${
-        isComplete ? "border-emerald-700/40 bg-slate-900/50 opacity-70" : "border-slate-800 bg-slate-900"
+        isComplete ? "border-emerald-700/40 bg-panel/50 opacity-70" : "border-hairline bg-panel"
       }`}
     >
       <button onClick={() => setExpanded((v) => !v)} className="flex w-full items-start justify-between gap-2 text-left">
         <div>
-          <p className="text-xs text-slate-400">{t(exercise.slotName)}</p>
+          <p className="text-xs text-ink-faint">{t(exercise.slotName)}</p>
           <p className="mt-0.5 text-sm font-medium">
             {isComplete && "✓ "}
             {exerciseName(exercise.exercise, locale)}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-ink-faint">
             {t("workout.exercise.suggested", {
               sets: exercise.suggestedSets,
               reps: repsText,
@@ -379,15 +374,15 @@ function ExerciseCard({
             })}
           </p>
         </div>
-        <span className="text-xs text-slate-500">{expanded ? "▾" : "▸"}</span>
+        <span className="text-xs text-ink-faint">{expanded ? "▾" : "▸"}</span>
       </button>
 
       {expanded && (
         <div className="mt-3 space-y-3">
           {(exercise.previous || exercise.suggestion) && exercise.setLogs.length === 0 && (
-            <div className="rounded-xl bg-slate-800/50 p-3 text-xs">
+            <div className="rounded-xl bg-elevated/50 p-3 text-xs">
               {exercise.previous && (
-                <p className="text-slate-400">
+                <p className="text-ink-faint">
                   {t("progression.lastTime", {
                     weight: exercise.previous.weight !== null ? `${exercise.previous.weight} × ` : "",
                     reps: exercise.previous.reps,
@@ -400,7 +395,7 @@ function ExerciseCard({
               )}
               {exercise.suggestion && (
                 <>
-                  <p className="mt-1 font-medium text-emerald-300">
+                  <p className="mt-1 font-medium text-emerald-600 dark:text-emerald-300">
                     {t("progression.suggestionHeader")}:{" "}
                     {exercise.suggestion.suggestedWeight !== null
                       ? t("progression.suggestionWeightReps", {
@@ -409,7 +404,7 @@ function ExerciseCard({
                         })
                       : t("progression.suggestionReps", { reps: exercise.suggestion.suggestedReps })}
                   </p>
-                  <p className="mt-0.5 text-slate-500">{t(exercise.suggestion.rationaleKey)}</p>
+                  <p className="mt-0.5 text-ink-faint">{t(exercise.suggestion.rationaleKey)}</p>
                 </>
               )}
             </div>
@@ -417,15 +412,18 @@ function ExerciseCard({
           {exercise.setLogs.length > 0 && (
             <ul className="space-y-1">
               {exercise.setLogs.map((set) => (
-                <li key={set.id} className="flex items-center justify-between rounded-lg bg-slate-800 px-3 py-2 text-xs">
-                  <span className="text-slate-400">{t("workout.exercise.setN", { n: set.setNumber })}</span>
-                  <span className="font-medium text-white">
+                <li key={set.id} className="flex items-center justify-between rounded-lg bg-elevated px-3 py-2 text-xs">
+                  <span className="text-ink-faint">{t("workout.exercise.setN", { n: set.setNumber })}</span>
+                  <span className="font-medium text-ink">
                     {set.weight !== null ? `${set.weight} × ` : ""}
                     {set.reps}
                     {set.rir !== null ? ` · RIR ${set.rir}` : ""}
                   </span>
                   {!isComplete && (
-                    <button onClick={() => onDeleteSet(set.id)} className="text-rose-300 hover:text-rose-200">
+                    <button
+                      onClick={() => onDeleteSet(set.id)}
+                      className="text-rose-500 hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200"
+                    >
                       ✕
                     </button>
                   )}
@@ -437,36 +435,36 @@ function ExerciseCard({
           {!isComplete && (
             <>
               <div className="grid grid-cols-2 gap-2">
-                <label className="flex flex-col gap-1 text-xs text-slate-400">
+                <label className="flex flex-col gap-1 text-xs text-ink-faint">
                   {t("workout.exercise.weightLabel")}
                   <input
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
+                    className="rounded-lg border border-hairline bg-elevated px-3 py-2 text-sm text-ink outline-none focus:border-emerald-400"
                     placeholder={lastSet?.weight !== undefined && lastSet?.weight !== null ? String(lastSet.weight) : "—"}
                     inputMode="decimal"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-xs text-slate-400">
+                <label className="flex flex-col gap-1 text-xs text-ink-faint">
                   {t("workout.exercise.repsLabel")}
                   <input
                     value={reps}
                     onChange={(e) => setReps(e.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
+                    className="rounded-lg border border-hairline bg-elevated px-3 py-2 text-sm text-ink outline-none focus:border-emerald-400"
                     placeholder={String(exercise.suggestedRepsLow)}
                     inputMode="numeric"
                   />
                 </label>
               </div>
               <div>
-                <p className="text-xs text-slate-400">{t("workout.exercise.rirLabel")}</p>
+                <p className="text-xs text-ink-faint">{t("workout.exercise.rirLabel")}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {RIR_VALUES.map((value) => (
                     <button
                       key={value}
                       onClick={() => setRir(value)}
                       className={`rounded-lg px-2 py-1 text-xs ${
-                        rir === value ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                        rir === value ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-soft"
                       }`}
                     >
                       {t(`workout.rir.${value}`)}
@@ -484,7 +482,7 @@ function ExerciseCard({
                     ? t("workout.exercise.saving")
                     : t("workout.exercise.logSet", { n: exercise.setLogs.length + 1 })}
                 </button>
-                <button onClick={onComplete} className="flex-1 rounded-xl bg-slate-800 px-3 py-2 text-sm">
+                <button onClick={onComplete} className="flex-1 rounded-xl bg-elevated px-3 py-2 text-sm">
                   {t("workout.exercise.complete")}
                 </button>
               </div>
