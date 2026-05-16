@@ -178,32 +178,43 @@ export async function generateProgram(input: GeneratorInput): Promise<GeneratedP
     const cached = cache.get(key);
     if (cached) return cached;
 
-    const where = {
+    const baseWhere = {
       category: slot.category,
       ...(slot.primaryMuscle ? { primaryMuscles: { has: slot.primaryMuscle } } : {}),
       equipment: { hasSome: availableEquipment }
     };
 
-    const rows = await prisma.exerciseCatalog.findMany({
-      where,
-      select: {
-        id: true,
-        slug: true,
-        nameEn: true,
-        nameRu: true,
-        category: true,
-        primaryMuscles: true,
-        equipment: true,
-        difficulty: true
-      },
+    const select = {
+      id: true,
+      slug: true,
+      nameEn: true,
+      nameRu: true,
+      category: true,
+      primaryMuscles: true,
+      equipment: true,
+      difficulty: true
+    };
+
+    const applyFilters = (rows: CatalogCandidate[]) =>
+      rows.filter((row) => {
+        if (!difficultyAllowed(row.difficulty, maxDifficulty)) return false;
+        if (excludedMuscles.some((m) => row.primaryMuscles.includes(m))) return false;
+        return true;
+      });
+
+    // Prefer the hand-curated catalog (clean, bilingual). Fall back to the
+    // full catalog only if curated has nothing for this slot.
+    const curated = await prisma.exerciseCatalog.findMany({
+      where: { ...baseWhere, source: "curated" },
+      select,
       take: 100
     });
+    let filtered = applyFilters(curated);
 
-    const filtered = rows.filter((row) => {
-      if (!difficultyAllowed(row.difficulty, maxDifficulty)) return false;
-      if (excludedMuscles.some((m) => row.primaryMuscles.includes(m))) return false;
-      return true;
-    });
+    if (filtered.length === 0) {
+      const all = await prisma.exerciseCatalog.findMany({ where: baseWhere, select, take: 100 });
+      filtered = applyFilters(all);
+    }
 
     cache.set(key, filtered);
     return filtered;

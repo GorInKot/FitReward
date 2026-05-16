@@ -12,6 +12,7 @@ import dashboardRoutes from "./routes/dashboard";
 import achievementsRoutes from "./routes/achievements";
 import { requireTelegramAuth } from "./middleware/telegramAuth";
 import { seedAchievements } from "./services/achievementEngine";
+import { seedCuratedExercises } from "./services/curatedExerciseSeeder";
 
 const app = express();
 
@@ -54,5 +55,12 @@ app.listen(port, async () => {
     console.log("[achievements] catalog seeded");
   } catch (error) {
     console.error("[achievements] seed failed", error);
+  }
+  // Idempotent — upserts the curated bilingual exercise catalog.
+  try {
+    await seedCuratedExercises();
+    console.log("[exercises] curated catalog seeded");
+  } catch (error) {
+    console.error("[exercises] curated seed failed", error);
   }
 });
