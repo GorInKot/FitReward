@@ -4,6 +4,7 @@ import { updateProfile } from "../utils/api";
 import { getTelegramUsername } from "../utils/telegram";
 import { useProfileStore } from "../store/profileStore";
 import { useAchievementStore } from "../store/achievementStore";
+import { useGuideStore } from "../store/guideStore";
 import { Locale, useTranslation } from "../i18n";
 
 export default function Profile() {
@@ -13,6 +14,7 @@ export default function Profile() {
   const loading = useProfileStore((s) => s.loading);
   const setProfile = useProfileStore((s) => s.setProfile);
   const achievements = useAchievementStore((s) => s.achievements);
+  const openGuide = useGuideStore((s) => s.openGuide);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -230,6 +232,14 @@ export default function Profile() {
             </button>
           ))}
         </div>
+      </article>
+
+      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <h3 className="text-sm font-semibold text-slate-300">{t("guide.reopenTitle")}</h3>
+        <p className="mt-1 text-xs text-slate-400">{t("guide.reopenDescription")}</p>
+        <button onClick={openGuide} className="mt-3 rounded-xl bg-slate-800 px-4 py-2 text-sm">
+          {t("guide.reopenButton")}
+        </button>
       </article>
     </section>
   );

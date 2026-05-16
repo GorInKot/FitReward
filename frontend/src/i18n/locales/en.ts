@@ -42,6 +42,42 @@ export const en = {
     timeLabel: "Reminder time",
     timezoneNote: "Timezone: {tz}"
   },
+  guide: {
+    skip: "Skip",
+    done: "Let's go!",
+    reopenTitle: "App guide",
+    reopenDescription: "A quick tour of the sections — in case you forgot.",
+    reopenButton: "Open guide",
+    welcome: {
+      title: "Welcome to FitReward",
+      body: "This is your smart fitness coach: it builds a program around your goal and experience, runs your workouts and adapts the load. Here's a quick tour of what's where."
+    },
+    home: {
+      tag: "Home",
+      title: "Home",
+      body: "Your day at a glance: the next workout with a start button and your weekly stats. If fatigue builds up, a deload hint appears here."
+    },
+    workout: {
+      tag: "Workout",
+      title: "Workout",
+      body: "Start a session and log every set: weight, reps and RIR — reps in reserve. Each exercise shows your last result and today's target."
+    },
+    plans: {
+      tag: "Plans",
+      title: "Plans",
+      body: "Your program by day: picked exercises, sets and rest. You can regenerate it if your goal or conditions change."
+    },
+    progress: {
+      tag: "Progress",
+      title: "Progress",
+      body: "Body measurements and a weight chart, a 30-day workout calendar and personal records — see how you're moving toward your goal."
+    },
+    profile: {
+      tag: "Profile",
+      title: "Profile",
+      body: "Personal data, language, bot reminders and redoing onboarding. You can always reopen this guide from here."
+    }
+  },
   profile: {
     title: "Profile",
     loading: "Loading profile...",

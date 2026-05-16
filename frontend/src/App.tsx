@@ -9,9 +9,11 @@ import Onboarding from "./pages/Onboarding";
 import { useTelegram } from "./hooks/useTelegram";
 import { useProfileStore } from "./store/profileStore";
 import { useAchievementStore } from "./store/achievementStore";
+import { hasSeenGuide, useGuideStore } from "./store/guideStore";
 import { useTranslation } from "./i18n";
 import { updateProfile } from "./utils/api";
 import AchievementToast from "./components/AchievementToast";
+import AppGuide from "./components/AppGuide";
 
 export default function App() {
   useTelegram();
@@ -25,7 +27,9 @@ export default function App() {
   const setProfile = useProfileStore((s) => s.setProfile);
   const loadAchievements = useAchievementStore((s) => s.load);
   const refreshAchievements = useAchievementStore((s) => s.refresh);
+  const openGuide = useGuideStore((s) => s.openGuide);
   const contextSyncInFlight = useRef(false);
+  const guideAutoChecked = useRef(false);
 
   useEffect(() => {
     if (!fetched) {
@@ -64,6 +68,16 @@ export default function App() {
     if (!profile || !profile.onboardingCompleted) return;
     void refreshAchievements();
   }, [location.pathname, profile, refreshAchievements]);
+
+  // Show the section guide once, on the first launch after onboarding —
+  // but only on a real screen, not over the onboarding result page.
+  useEffect(() => {
+    if (guideAutoChecked.current) return;
+    if (!profile || !profile.onboardingCompleted) return;
+    if (location.pathname === "/onboarding") return;
+    guideAutoChecked.current = true;
+    if (!hasSeenGuide()) openGuide();
+  }, [profile, location.pathname, openGuide]);
 
   const navItems = [
     { to: "/", label: t("nav.home") },
@@ -123,6 +137,7 @@ export default function App() {
         </nav>
       )}
       <AchievementToast />
+      <AppGuide />
     </div>
   );
 }
