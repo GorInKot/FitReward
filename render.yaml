@@ -17,3 +17,28 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      - key: INTERNAL_API_SECRET
+        sync: false
+
+  - type: web
+    name: fitreward-bot
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm --workspace bot run build
+    startCommand: npm --workspace bot run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: INTERNAL_API_SECRET
+        sync: false
+      - key: PUBLIC_URL
+        sync: false

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Workout from "./pages/Workout";
@@ -10,25 +10,48 @@ import { useTelegram } from "./hooks/useTelegram";
 import { useProfileStore } from "./store/profileStore";
 import { useAchievementStore } from "./store/achievementStore";
 import { useTranslation } from "./i18n";
+import { updateProfile } from "./utils/api";
 import AchievementToast from "./components/AchievementToast";
 
 export default function App() {
   useTelegram();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const profile = useProfileStore((s) => s.profile);
   const loading = useProfileStore((s) => s.loading);
   const error = useProfileStore((s) => s.error);
   const fetched = useProfileStore((s) => s.fetched);
   const load = useProfileStore((s) => s.load);
+  const setProfile = useProfileStore((s) => s.setProfile);
   const loadAchievements = useAchievementStore((s) => s.load);
   const refreshAchievements = useAchievementStore((s) => s.refresh);
+  const contextSyncInFlight = useRef(false);
 
   useEffect(() => {
     if (!fetched) {
       void load();
     }
   }, [fetched, load]);
+
+  // Push the device timezone and active locale to the backend so the bot can
+  // send training-day reminders at the right local hour, in the right language.
+  useEffect(() => {
+    if (!profile || contextSyncInFlight.current) return;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    const patch: { timezone?: string; locale?: "ru" | "en" } = {};
+    if (profile.timezone !== timezone) patch.timezone = timezone;
+    if (profile.locale !== locale) patch.locale = locale;
+    if (!patch.timezone && !patch.locale) return;
+    contextSyncInFlight.current = true;
+    updateProfile(patch)
+      .then((updated) => setProfile(updated))
+      .catch(() => {
+        // non-critical — reminders just fall back to stored values
+      })
+      .finally(() => {
+        contextSyncInFlight.current = false;
+      });
+  }, [profile, locale, setProfile]);
 
   // Initial load + re-check on every route change so unlocks triggered by
   // POST actions (session complete, log set, save metric) surface as toasts.

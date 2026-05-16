@@ -33,6 +33,15 @@ export const en = {
     ru: "Русский",
     en: "English"
   },
+  reminders: {
+    title: "Reminders",
+    description: "The bot nudges you on training days if you haven't started a workout yet.",
+    toggleLabel: "Workout reminders",
+    on: "On",
+    off: "Off",
+    timeLabel: "Reminder time",
+    timezoneNote: "Timezone: {tz}"
+  },
   profile: {
     title: "Profile",
     loading: "Loading profile...",

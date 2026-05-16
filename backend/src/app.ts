@@ -10,6 +10,7 @@ import sessionRoutes from "./routes/sessions";
 import metricsRoutes from "./routes/metrics";
 import dashboardRoutes from "./routes/dashboard";
 import achievementsRoutes from "./routes/achievements";
+import internalRoutes from "./routes/internal";
 import { requireTelegramAuth } from "./middleware/telegramAuth";
 import { seedAchievements } from "./services/achievementEngine";
 import { seedCuratedExercises } from "./services/curatedExerciseSeeder";
@@ -45,6 +46,7 @@ app.use("/api/sessions", requireTelegramAuth, sessionRoutes);
 app.use("/api/metrics", requireTelegramAuth, metricsRoutes);
 app.use("/api/dashboard", requireTelegramAuth, dashboardRoutes);
 app.use("/api/achievements", requireTelegramAuth, achievementsRoutes);
+app.use("/internal", internalRoutes);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, async () => {

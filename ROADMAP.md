@@ -305,13 +305,36 @@ Conversational layer для объяснений и советов.
 
 ---
 
-## Фаза 11. Бот в проде + напоминания (P2)
+## Фаза 11. Бот в проде + напоминания (P2) — 🟡 КОД ГОТОВ, ОЖИДАЕТ ДЕПЛОЯ
 
-- [ ] Деплой `bot/` как Background Worker на Render (добавить в `render.yaml`)
-- [ ] @BotFather: `/setmenubutton` → Mini App URL
-- [ ] Cron-планировщик в боте (`node-cron`):
-  - Если сегодня тренировочный день и сессия не начата к 18:00 → reminder
-- [ ] Команды `/profile`, `/today` (показать план на сегодня), `/streak`
+Архитектура: бот — отдельный free Web Service на webhook. Напоминания — в тренировочный
+день; данные считает backend, рассылает бот.
+
+### Backend
+- [x] Схема `User`: `timezone`, `locale`, `reminderHour`, `remindersEnabled`, `lastReminderSentAt` (миграция `20260516_reminders`)
+- [x] `services/trainingSchedule.ts`: маппинг `trainingDaysPerWeek` → дни недели + `zonedParts()` (час/день недели в таймзоне юзера)
+- [x] `routes/internal.ts` (защита `INTERNAL_API_SECRET`):
+  - `POST /internal/reminder-targets` — кого пинговать сейчас (час == reminderHour, тренировочный день, сегодня без сессии, ещё не пинговали) + ставит `lastReminderSentAt`
+  - `GET /internal/user-summary?telegramId=` — данные для команд бота
+- [x] `PUT /api/profile/me` принимает `timezone`, `locale`, `reminderHour`, `remindersEnabled`
+
+### Бот
+- [x] Переписан с `bot.launch()` (polling) на webhook + Express (биндинг порта для Render Web Service)
+- [x] Команды `/start`, `/today`, `/streak`, `/profile` через `/internal/user-summary`
+- [x] `services/reminders.ts` + `POST /tasks/reminders` (триггерится внешним кроном, отвечает сразу)
+- [x] Мини-i18n RU/EN (`bot/src/i18n.ts`), self-register webhook при старте
+- [x] Удалены мёртвые заглушки `handlers/workout.ts`, `handlers/achievements.ts`, `services/notifications.ts`
+
+### Frontend
+- [x] `App.tsx` синхронизирует таймзону устройства + активную локаль в профиль
+- [x] Секция «Напоминания» в Профиле: тумблер + выбор часа, переводы RU/EN
+
+### Инфра / ручное
+- [x] `render.yaml`: сервис `fitreward-bot` + env `INTERNAL_API_SECRET` на backend
+- [ ] Render: создать Web Service `fitreward-bot`, env-переменные
+- [ ] @BotFather: `/setmenubutton` → Mini App URL, `/setcommands`
+- [ ] cron-job.org: ежечасный `POST .../tasks/reminders` с `X-Internal-Secret`
+- [ ] Прод-тест в Telegram: команды + напоминание
 
 ---
 

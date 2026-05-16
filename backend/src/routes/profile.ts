@@ -15,7 +15,11 @@ const updateProfileSchema = z.object({
   username: z.string().min(1).optional(),
   age: z.number().int().positive().max(120).nullable().optional(),
   weight: z.number().positive().max(500).nullable().optional(),
-  height: z.number().int().positive().max(300).nullable().optional()
+  height: z.number().int().positive().max(300).nullable().optional(),
+  timezone: z.string().min(1).max(64).optional(),
+  locale: z.enum(["ru", "en"]).optional(),
+  reminderHour: z.number().int().min(0).max(23).optional(),
+  remindersEnabled: z.boolean().optional()
 });
 
 const fallbackProfiles = new Map<string, SerializedProfile>();
@@ -38,7 +42,11 @@ function emptyProfile(telegramId: string): SerializedProfile {
     limitations: [],
     recommendedStructure: null,
     onboardingCompletedAt: null,
-    onboardingCompleted: false
+    onboardingCompleted: false,
+    timezone: "UTC",
+    locale: "en",
+    reminderHour: 18,
+    remindersEnabled: true
   };
 }
 

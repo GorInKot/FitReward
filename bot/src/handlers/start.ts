@@ -1,11 +1,9 @@
 import { Telegraf } from "telegraf";
+import { messages, openKeyboard, pickLocale } from "../i18n";
 
 export function registerStartHandler(bot: Telegraf) {
   bot.start((ctx) => {
-    ctx.reply("👋 Добро пожаловать в FitReward!\n\nОткройте приложение для планирования тренировок:", {
-      reply_markup: {
-        inline_keyboard: [[{ text: "🏃‍♂️ Открыть FitReward", web_app: { url: process.env.WEBAPP_URL || "" } }]]
-      }
-    });
+    const locale = pickLocale(ctx.from?.language_code);
+    return ctx.reply(messages(locale).start, openKeyboard(locale));
   });
 }

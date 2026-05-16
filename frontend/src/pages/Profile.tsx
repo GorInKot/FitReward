@@ -65,6 +65,17 @@ export default function Profile() {
     }
   }
 
+  async function patchReminders(patch: { remindersEnabled?: boolean; reminderHour?: number }) {
+    if (!profile) return;
+    try {
+      const updated = await updateProfile(patch);
+      setProfile(updated);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    }
+  }
+
   return (
     <section className="space-y-4">
       <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
@@ -160,6 +171,47 @@ export default function Profile() {
               );
             })}
           </ul>
+        )}
+      </article>
+
+      <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <h3 className="text-sm font-semibold text-slate-300">{t("reminders.title")}</h3>
+        <p className="mt-1 text-xs text-slate-400">{t("reminders.description")}</p>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-sm">{t("reminders.toggleLabel")}</span>
+          <button
+            onClick={() => patchReminders({ remindersEnabled: !(profile?.remindersEnabled ?? true) })}
+            disabled={loading || !profile}
+            className={`rounded-xl px-4 py-2 text-sm disabled:opacity-50 ${
+              profile?.remindersEnabled ?? true
+                ? "bg-emerald-500 text-slate-950"
+                : "bg-slate-800 text-slate-300"
+            }`}
+          >
+            {profile?.remindersEnabled ?? true ? t("reminders.on") : t("reminders.off")}
+          </button>
+        </div>
+        {(profile?.remindersEnabled ?? true) && (
+          <label className="mt-3 flex items-center justify-between text-sm text-slate-300">
+            {t("reminders.timeLabel")}
+            <select
+              value={profile?.reminderHour ?? 18}
+              onChange={(event) => patchReminders({ reminderHour: Number(event.target.value) })}
+              disabled={loading || !profile}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400 disabled:opacity-50"
+            >
+              {Array.from({ length: 24 }, (_, h) => (
+                <option key={h} value={h}>
+                  {String(h).padStart(2, "0")}:00
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {profile?.timezone && (
+          <p className="mt-2 text-[10px] text-slate-500">
+            {t("reminders.timezoneNote", { tz: profile.timezone })}
+          </p>
         )}
       </article>
 

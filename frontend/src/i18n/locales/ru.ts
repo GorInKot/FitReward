@@ -33,6 +33,15 @@ export const ru = {
     ru: "Русский",
     en: "English"
   },
+  reminders: {
+    title: "Напоминания",
+    description: "Бот напомнит в тренировочный день, если ты ещё не начал тренировку.",
+    toggleLabel: "Напоминания о тренировках",
+    on: "Вкл",
+    off: "Выкл",
+    timeLabel: "Время напоминания",
+    timezoneNote: "Часовой пояс: {tz}"
+  },
   profile: {
     title: "Профиль",
     loading: "Профиль загружается...",

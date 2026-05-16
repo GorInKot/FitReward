@@ -32,6 +32,13 @@ model User {
 
   onboardingCompletedAt DateTime?
 
+  // Reminders / localization
+  timezone           String    @default("UTC")
+  locale             String    @default("en")
+  reminderHour       Int       @default(18)
+  remindersEnabled   Boolean   @default(true)
+  lastReminderSentAt DateTime?
+
   programs     Program[]
   sessions     WorkoutSession[]
   bodyMetrics  BodyMetric[]

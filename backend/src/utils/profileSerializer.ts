@@ -22,7 +22,11 @@ export const PROFILE_SELECT = {
   trainingEnvironment: true,
   limitations: true,
   recommendedStructure: true,
-  onboardingCompletedAt: true
+  onboardingCompletedAt: true,
+  timezone: true,
+  locale: true,
+  reminderHour: true,
+  remindersEnabled: true
 } as const;
 
 export type PrismaUserRow = {
@@ -42,6 +46,10 @@ export type PrismaUserRow = {
   limitations: Limitation[];
   recommendedStructure: TrainingStructure | null;
   onboardingCompletedAt: Date | null;
+  timezone: string;
+  locale: string;
+  reminderHour: number;
+  remindersEnabled: boolean;
 };
 
 export type SerializedProfile = Omit<PrismaUserRow, "onboardingCompletedAt"> & {

@@ -80,6 +80,10 @@ export interface ApiProfile {
   recommendedStructure: TrainingStructure | null;
   onboardingCompletedAt: string | null;
   onboardingCompleted: boolean;
+  timezone: string;
+  locale: "ru" | "en";
+  reminderHour: number;
+  remindersEnabled: boolean;
 }
 
 export interface RecommendationReason {
@@ -116,7 +120,21 @@ export function getProfile() {
 }
 
 export function updateProfile(
-  payload: Partial<Pick<ApiProfile, "firstName" | "lastName" | "username" | "age" | "weight" | "height">>
+  payload: Partial<
+    Pick<
+      ApiProfile,
+      | "firstName"
+      | "lastName"
+      | "username"
+      | "age"
+      | "weight"
+      | "height"
+      | "timezone"
+      | "locale"
+      | "reminderHour"
+      | "remindersEnabled"
+    >
+  >
 ) {
   return request<ApiProfile>("/api/profile/me", {
     method: "PUT",
