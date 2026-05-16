@@ -294,6 +294,20 @@ export const en = {
     kg: "kg",
     reps: "reps"
   },
+  equipment: {
+    BARBELL: "Barbell",
+    DUMBBELL: "Dumbbell",
+    KETTLEBELL: "Kettlebell",
+    MACHINE: "Machine",
+    CABLE: "Cable",
+    BODYWEIGHT: "Bodyweight",
+    RESISTANCE_BAND: "Band",
+    BENCH: "Bench",
+    PULL_UP_BAR: "Pull-up bar",
+    GYMNASTIC_RINGS: "Rings",
+    SWISS_BALL: "Swiss ball",
+    OTHER: "Other"
+  },
   achievement: {
     sectionTitle: "Achievements",
     locked: "🔒",

@@ -294,6 +294,20 @@ export const ru = {
     kg: "кг",
     reps: "повт"
   },
+  equipment: {
+    BARBELL: "Штанга",
+    DUMBBELL: "Гантели",
+    KETTLEBELL: "Гиря",
+    MACHINE: "Тренажёр",
+    CABLE: "Блок",
+    BODYWEIGHT: "Своё тело",
+    RESISTANCE_BAND: "Резина",
+    BENCH: "Скамья",
+    PULL_UP_BAR: "Турник",
+    GYMNASTIC_RINGS: "Кольца",
+    SWISS_BALL: "Фитбол",
+    OTHER: "Другое"
+  },
   achievement: {
     sectionTitle: "Достижения",
     locked: "🔒",

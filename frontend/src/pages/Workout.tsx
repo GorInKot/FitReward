@@ -14,6 +14,7 @@ import {
 } from "../utils/api";
 import { useTranslation, TranslateFn } from "../i18n";
 import { formatDayName, formatDayLabel } from "../utils/dayName";
+import { exerciseName } from "../utils/exerciseName";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
 
@@ -277,7 +278,6 @@ function ActiveSession({
           onLogSet={(input) => handleLogSet(ex, input)}
           onDeleteSet={(setId) => handleDeleteSet(ex, setId)}
           onComplete={() => handleCompleteExercise(ex)}
-          t={t}
         />
       ))}
 
@@ -303,15 +303,14 @@ function ExerciseCard({
   exercise,
   onLogSet,
   onDeleteSet,
-  onComplete,
-  t
+  onComplete
 }: {
   exercise: ApiSessionExercise;
   onLogSet: (input: { reps: number; weight: number | null; rir: number | null }) => Promise<void>;
   onDeleteSet: (setId: string) => Promise<void>;
   onComplete: () => Promise<void>;
-  t: TranslateFn;
 }) {
+  const { t, locale } = useTranslation();
   const [expanded, setExpanded] = useState(!exercise.completedAt);
   const initialWeight =
     exercise.suggestion?.suggestedWeight !== undefined && exercise.suggestion?.suggestedWeight !== null
@@ -365,7 +364,7 @@ function ExerciseCard({
           <p className="text-xs text-slate-400">{t(exercise.slotName)}</p>
           <p className="mt-0.5 text-sm font-medium">
             {isComplete && "✓ "}
-            {exercise.exercise.nameRu ?? exercise.exercise.nameEn}
+            {exerciseName(exercise.exercise, locale)}
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
             {t("workout.exercise.suggested", {

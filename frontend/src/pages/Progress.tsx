@@ -8,6 +8,7 @@ import {
   getMetrics
 } from "../utils/api";
 import { useTranslation } from "../i18n";
+import { exerciseName } from "../utils/exerciseName";
 
 export default function Progress() {
   const { t, locale } = useTranslation();
@@ -141,7 +142,7 @@ export default function Progress() {
                 <li key={pr.exerciseId} className="flex items-center justify-between rounded-xl bg-slate-800 p-3">
                   <div>
                     <p className="text-xs text-slate-400">{t(pr.slotName)}</p>
-                    <p className="mt-0.5">{pr.nameRu ?? pr.nameEn}</p>
+                    <p className="mt-0.5">{exerciseName(pr, locale)}</p>
                   </div>
                   <span className="font-semibold text-emerald-300">
                     {t("progress.prValue", { weight: pr.weight, reps: pr.reps })}

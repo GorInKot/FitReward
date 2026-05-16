@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ApiProgram, ApiProgramDay, getCurrentProgram, regenerateProgram } from "../utils/api";
 import { useTranslation } from "../i18n";
 import { formatDayName } from "../utils/dayName";
+import { exerciseName } from "../utils/exerciseName";
 
 export default function Plans() {
   const { t } = useTranslation();
@@ -109,7 +110,7 @@ export default function Plans() {
 }
 
 function DayDetail({ day }: { day: ApiProgramDay }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
       <h3 className="text-sm font-semibold text-slate-300">
@@ -130,7 +131,7 @@ function DayDetail({ day }: { day: ApiProgramDay }) {
                 <div>
                   <p className="text-xs text-slate-400">{t(slot.slotName)}</p>
                   <p className="mt-0.5 text-sm font-medium text-white">
-                    {slot.exercise.nameRu ?? slot.exercise.nameEn}
+                    {exerciseName(slot.exercise, locale)}
                   </p>
                 </div>
                 <p className="whitespace-nowrap text-right text-xs text-emerald-300">
@@ -138,7 +139,10 @@ function DayDetail({ day }: { day: ApiProgramDay }) {
                 </p>
               </div>
               <p className="mt-1 text-[10px] text-slate-500">
-                {t("plans.setExtra", { rest: restText, equipment: slot.exercise.equipment.join(", ") })}
+                {t("plans.setExtra", {
+                  rest: restText,
+                  equipment: slot.exercise.equipment.map((e) => t(`equipment.${e}`)).join(", ")
+                })}
               </p>
             </li>
           );
