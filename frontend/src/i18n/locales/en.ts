@@ -276,6 +276,7 @@ export const en = {
     abandon: "Abandon",
     finish: "Finish workout",
     abandonConfirm: "Abandon this workout? Logged sets will stay as incomplete.",
+    restDayConfirm: "Today is a rest day — it's not in your training schedule. Start anyway?",
     completion: {
       title: "How did it feel?",
       subtitle: "Rate overall fatigue from 1 to 10",

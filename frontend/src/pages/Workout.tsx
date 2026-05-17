@@ -18,6 +18,7 @@ import { exerciseName } from "../utils/exerciseName";
 import { hapticImpact, hapticSuccess } from "../utils/haptics";
 import { toastError } from "../store/toastStore";
 import { useExerciseGuideStore } from "../store/exerciseGuideStore";
+import { useProfileStore } from "../store/profileStore";
 import Skeleton from "../components/Skeleton";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
@@ -29,6 +30,7 @@ export default function Workout() {
   const [nextDay, setNextDay] = useState<{ id: string; name: string; order: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const trainingDays = useProfileStore((s) => s.profile?.trainingDays);
 
   const load = useCallback(async () => {
     try {
@@ -55,6 +57,11 @@ export default function Workout() {
 
   async function handleStart() {
     if (!nextDay) return;
+    const isRestDay =
+      trainingDays !== undefined &&
+      trainingDays.length > 0 &&
+      !trainingDays.includes(new Date().getDay());
+    if (isRestDay && !window.confirm(t("workout.restDayConfirm"))) return;
     try {
       setBusy(true);
       const { session: fresh } = await startSession(nextDay.id);
