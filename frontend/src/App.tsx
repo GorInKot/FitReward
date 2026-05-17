@@ -16,6 +16,7 @@ import AchievementToast from "./components/AchievementToast";
 import AppGuide from "./components/AppGuide";
 import Toast from "./components/Toast";
 import ExerciseGuideModal from "./components/ExerciseGuideModal";
+import NavIcon, { NavIconName } from "./components/NavIcon";
 
 export default function App() {
   useTelegram();
@@ -81,12 +82,12 @@ export default function App() {
     if (!hasSeenGuide()) openGuide();
   }, [profile, location.pathname, openGuide]);
 
-  const navItems = [
-    { to: "/", label: t("nav.home") },
-    { to: "/workout", label: t("nav.workout") },
-    { to: "/progress", label: t("nav.progress") },
-    { to: "/plans", label: t("nav.plans") },
-    { to: "/profile", label: t("nav.profile") }
+  const navItems: { to: string; label: string; icon: NavIconName }[] = [
+    { to: "/", label: t("nav.home"), icon: "home" },
+    { to: "/workout", label: t("nav.workout"), icon: "workout" },
+    { to: "/progress", label: t("nav.progress"), icon: "progress" },
+    { to: "/plans", label: t("nav.plans"), icon: "plans" },
+    { to: "/profile", label: t("nav.profile"), icon: "profile" }
   ];
 
   const isOnboardingRoute = location.pathname === "/onboarding";
@@ -113,7 +114,7 @@ export default function App() {
       <header className="sticky top-0 z-10 border-b border-hairline bg-surface/90 p-4 backdrop-blur">
         <h1 className="text-lg font-semibold">{t("app.title")}</h1>
       </header>
-      <main className="mx-auto max-w-lg p-4 pb-24">
+      <main className="mx-auto max-w-lg p-4 pb-32">
         <Routes>
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : <Home />} />
@@ -124,15 +125,18 @@ export default function App() {
         </Routes>
       </main>
       {!isOnboardingRoute && (
-        <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-hairline bg-panel/95 p-3 text-xs">
+        <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-hairline bg-panel/95 px-2 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-full px-3 py-2 ${isActive ? "bg-emerald-500 text-slate-950" : "text-ink-soft"}`
+                `flex flex-col items-center gap-1 rounded-xl px-3 py-1 text-[10px] font-medium transition-colors ${
+                  isActive ? "text-emerald-500" : "text-ink-faint"
+                }`
               }
             >
+              <NavIcon name={item.icon} className="h-6 w-6" />
               {item.label}
             </NavLink>
           ))}

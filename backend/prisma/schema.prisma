@@ -38,6 +38,7 @@ model User {
   reminderHour       Int       @default(18)
   remindersEnabled   Boolean   @default(true)
   lastReminderSentAt DateTime?
+  trainingDays       Int[]     @default([])
 
   programs     Program[]
   sessions     WorkoutSession[]

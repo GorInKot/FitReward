@@ -5,6 +5,7 @@ import {
   TrainingEnvironment,
   TrainingStructure
 } from "../prismaEnums";
+import { effectiveTrainingDays } from "../services/trainingSchedule";
 
 export const PROFILE_SELECT = {
   id: true,
@@ -26,7 +27,8 @@ export const PROFILE_SELECT = {
   timezone: true,
   locale: true,
   reminderHour: true,
-  remindersEnabled: true
+  remindersEnabled: true,
+  trainingDays: true
 } as const;
 
 export type PrismaUserRow = {
@@ -50,6 +52,7 @@ export type PrismaUserRow = {
   locale: string;
   reminderHour: number;
   remindersEnabled: boolean;
+  trainingDays: number[];
 };
 
 export type SerializedProfile = Omit<PrismaUserRow, "onboardingCompletedAt"> & {
@@ -60,6 +63,7 @@ export type SerializedProfile = Omit<PrismaUserRow, "onboardingCompletedAt"> & {
 export function serializeProfile(user: PrismaUserRow): SerializedProfile {
   return {
     ...user,
+    trainingDays: effectiveTrainingDays(user.trainingDaysPerWeek, user.trainingDays),
     onboardingCompletedAt: user.onboardingCompletedAt ? user.onboardingCompletedAt.toISOString() : null,
     onboardingCompleted: Boolean(user.onboardingCompletedAt)
   };

@@ -84,6 +84,7 @@ export interface ApiProfile {
   locale: "ru" | "en";
   reminderHour: number;
   remindersEnabled: boolean;
+  trainingDays: number[];
 }
 
 export interface RecommendationReason {
@@ -133,6 +134,7 @@ export function updateProfile(
       | "locale"
       | "reminderHour"
       | "remindersEnabled"
+      | "trainingDays"
     >
   >
 ) {

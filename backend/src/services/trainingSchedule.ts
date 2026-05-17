@@ -20,6 +20,20 @@ export function trainingWeekdays(daysPerWeek: number): number[] {
   return SCHEDULE_BY_FREQUENCY[daysPerWeek] ?? SCHEDULE_BY_FREQUENCY[3];
 }
 
+/**
+ * The user's effective training weekdays: their explicit choice if set,
+ * otherwise the frequency-based default. Always sorted, never empty.
+ */
+export function effectiveTrainingDays(
+  daysPerWeek: number | null,
+  trainingDays: number[]
+): number[] {
+  if (trainingDays.length > 0) {
+    return [...trainingDays].sort((a, b) => a - b);
+  }
+  return trainingWeekdays(daysPerWeek ?? 3);
+}
+
 const WEEKDAY_INDEX: Record<string, number> = {
   Sun: 0,
   Mon: 1,

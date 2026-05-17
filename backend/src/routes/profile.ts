@@ -19,7 +19,8 @@ const updateProfileSchema = z.object({
   timezone: z.string().min(1).max(64).optional(),
   locale: z.enum(["ru", "en"]).optional(),
   reminderHour: z.number().int().min(0).max(23).optional(),
-  remindersEnabled: z.boolean().optional()
+  remindersEnabled: z.boolean().optional(),
+  trainingDays: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional()
 });
 
 const fallbackProfiles = new Map<string, SerializedProfile>();
@@ -46,7 +47,8 @@ function emptyProfile(telegramId: string): SerializedProfile {
     timezone: "UTC",
     locale: "en",
     reminderHour: 18,
-    remindersEnabled: true
+    remindersEnabled: true,
+    trainingDays: [1, 3, 5]
   };
 }
 

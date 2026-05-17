@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../utils/database";
-import { trainingWeekdays, zonedParts } from "../services/trainingSchedule";
+import { effectiveTrainingDays, zonedParts } from "../services/trainingSchedule";
 
 /**
  * Routes consumed by the bot service, not by the Mini App. Protected by a
@@ -111,6 +111,7 @@ router.post("/reminder-targets", async (_req, res) => {
         timezone: true,
         reminderHour: true,
         trainingDaysPerWeek: true,
+        trainingDays: true,
         lastReminderSentAt: true
       }
     });
@@ -121,7 +122,9 @@ router.post("/reminder-targets", async (_req, res) => {
     for (const user of users) {
       const today = zonedParts(now, user.timezone);
       if (today.hour !== user.reminderHour) continue;
-      if (!trainingWeekdays(user.trainingDaysPerWeek ?? 3).includes(today.weekday)) continue;
+      if (!effectiveTrainingDays(user.trainingDaysPerWeek, user.trainingDays).includes(today.weekday)) {
+        continue;
+      }
       if (
         user.lastReminderSentAt &&
         zonedParts(user.lastReminderSentAt, user.timezone).dateKey === today.dateKey
@@ -163,6 +166,7 @@ router.get("/user-summary", async (req, res) => {
         locale: true,
         timezone: true,
         trainingDaysPerWeek: true,
+        trainingDays: true,
         onboardingCompletedAt: true
       }
     });
@@ -171,9 +175,9 @@ router.get("/user-summary", async (req, res) => {
     }
 
     const today = zonedParts(new Date(), user.timezone);
-    const isTrainingDay = user.trainingDaysPerWeek
-      ? trainingWeekdays(user.trainingDaysPerWeek).includes(today.weekday)
-      : false;
+    const isTrainingDay = effectiveTrainingDays(user.trainingDaysPerWeek, user.trainingDays).includes(
+      today.weekday
+    );
 
     const [streak, weekSessions, nextDayName, trainedToday] = await Promise.all([
       computeStreak(user.id),

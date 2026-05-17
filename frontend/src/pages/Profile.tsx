@@ -79,6 +79,20 @@ export default function Profile() {
     }
   }
 
+  async function toggleTrainingDay(day: number) {
+    if (!profile) return;
+    const next = profile.trainingDays.includes(day)
+      ? profile.trainingDays.filter((d) => d !== day)
+      : [...profile.trainingDays, day].sort((a, b) => a - b);
+    if (next.length === 0) return;
+    try {
+      const updated = await updateProfile({ trainingDays: next });
+      setProfile(updated);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : t("common.error"));
+    }
+  }
+
   return (
     <section className="space-y-4">
       <article className="rounded-2xl border border-hairline bg-panel p-4">
@@ -219,6 +233,28 @@ export default function Profile() {
             {t("reminders.timezoneNote", { tz: profile.timezone })}
           </p>
         )}
+      </article>
+
+      <article className="rounded-2xl border border-hairline bg-panel p-4">
+        <h3 className="text-sm font-semibold text-ink-soft">{t("trainingDays.title")}</h3>
+        <p className="mt-1 text-xs text-ink-faint">{t("trainingDays.description")}</p>
+        <div className="mt-3 flex gap-1.5">
+          {[1, 2, 3, 4, 5, 6, 0].map((day) => {
+            const active = profile?.trainingDays.includes(day) ?? false;
+            return (
+              <button
+                key={day}
+                onClick={() => toggleTrainingDay(day)}
+                disabled={loading || !profile}
+                className={`flex-1 rounded-lg py-2 text-xs disabled:opacity-50 ${
+                  active ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-soft"
+                }`}
+              >
+                {t(`weekday.${day}`)}
+              </button>
+            );
+          })}
+        </div>
       </article>
 
       <article className="rounded-2xl border border-hairline bg-panel p-4">
