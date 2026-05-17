@@ -17,6 +17,7 @@ import { formatDayName, formatDayLabel } from "../utils/dayName";
 import { exerciseName } from "../utils/exerciseName";
 import { hapticImpact, hapticSuccess } from "../utils/haptics";
 import { toastError } from "../store/toastStore";
+import { useExerciseGuideStore } from "../store/exerciseGuideStore";
 import Skeleton from "../components/Skeleton";
 
 const RIR_VALUES = [0, 1, 2, 3, 5];
@@ -311,6 +312,7 @@ function ExerciseCard({
   onComplete: () => Promise<void>;
 }) {
   const { t, locale } = useTranslation();
+  const openGuide = useExerciseGuideStore((s) => s.open);
   const [expanded, setExpanded] = useState(!exercise.completedAt);
   const initialWeight =
     exercise.suggestion?.suggestedWeight !== undefined && exercise.suggestion?.suggestedWeight !== null
@@ -359,23 +361,34 @@ function ExerciseCard({
         isComplete ? "border-emerald-700/40 bg-panel/50 opacity-70" : "border-hairline bg-panel"
       }`}
     >
-      <button onClick={() => setExpanded((v) => !v)} className="flex w-full items-start justify-between gap-2 text-left">
-        <div>
-          <p className="text-xs text-ink-faint">{t(exercise.slotName)}</p>
-          <p className="mt-0.5 text-sm font-medium">
-            {isComplete && "✓ "}
-            {exerciseName(exercise.exercise, locale)}
-          </p>
-          <p className="mt-0.5 text-xs text-ink-faint">
-            {t("workout.exercise.suggested", {
-              sets: exercise.suggestedSets,
-              reps: repsText,
-              rest: restText
-            })}
-          </p>
-        </div>
-        <span className="text-xs text-ink-faint">{expanded ? "▾" : "▸"}</span>
-      </button>
+      <div className="flex items-start gap-2">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex flex-1 items-start justify-between gap-2 text-left"
+        >
+          <div>
+            <p className="text-xs text-ink-faint">{t(exercise.slotName)}</p>
+            <p className="mt-0.5 text-sm font-medium">
+              {isComplete && "✓ "}
+              {exerciseName(exercise.exercise, locale)}
+            </p>
+            <p className="mt-0.5 text-xs text-ink-faint">
+              {t("workout.exercise.suggested", {
+                sets: exercise.suggestedSets,
+                reps: repsText,
+                rest: restText
+              })}
+            </p>
+          </div>
+          <span className="text-xs text-ink-faint">{expanded ? "▾" : "▸"}</span>
+        </button>
+        <button
+          onClick={() => openGuide(exercise.exercise)}
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+        >
+          ?
+        </button>
+      </div>
 
       {expanded && (
         <div className="mt-3 space-y-3">

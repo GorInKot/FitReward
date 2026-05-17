@@ -359,6 +359,30 @@ export const ru = {
     SWISS_BALL: "Фитбол",
     OTHER: "Другое"
   },
+  muscle: {
+    CHEST: "Грудь",
+    UPPER_BACK: "Верх спины",
+    LATS: "Широчайшие",
+    LOWER_BACK: "Поясница",
+    SHOULDERS_FRONT: "Передняя дельта",
+    SHOULDERS_SIDE: "Средняя дельта",
+    SHOULDERS_REAR: "Задняя дельта",
+    BICEPS: "Бицепс",
+    TRICEPS: "Трицепс",
+    FOREARMS: "Предплечья",
+    QUADS: "Квадрицепс",
+    HAMSTRINGS: "Бицепс бедра",
+    GLUTES: "Ягодицы",
+    CALVES: "Икры",
+    ABS: "Пресс",
+    OBLIQUES: "Косые мышцы"
+  },
+  exerciseGuide: {
+    technique: "Техника",
+    mistakes: "Частые ошибки",
+    loading: "Загрузка...",
+    noGuide: "Описание этого упражнения пока недоступно."
+  },
   achievement: {
     sectionTitle: "Достижения",
     locked: "🔒",

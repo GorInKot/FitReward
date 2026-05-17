@@ -359,6 +359,30 @@ export const en = {
     SWISS_BALL: "Swiss ball",
     OTHER: "Other"
   },
+  muscle: {
+    CHEST: "Chest",
+    UPPER_BACK: "Upper back",
+    LATS: "Lats",
+    LOWER_BACK: "Lower back",
+    SHOULDERS_FRONT: "Front delts",
+    SHOULDERS_SIDE: "Side delts",
+    SHOULDERS_REAR: "Rear delts",
+    BICEPS: "Biceps",
+    TRICEPS: "Triceps",
+    FOREARMS: "Forearms",
+    QUADS: "Quads",
+    HAMSTRINGS: "Hamstrings",
+    GLUTES: "Glutes",
+    CALVES: "Calves",
+    ABS: "Abs",
+    OBLIQUES: "Obliques"
+  },
+  exerciseGuide: {
+    technique: "Technique",
+    mistakes: "Common mistakes",
+    loading: "Loading...",
+    noGuide: "A guide for this exercise isn't available yet."
+  },
   achievement: {
     sectionTitle: "Achievements",
     locked: "🔒",

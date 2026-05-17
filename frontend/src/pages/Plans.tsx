@@ -4,6 +4,7 @@ import { useTranslation } from "../i18n";
 import { formatDayName } from "../utils/dayName";
 import { exerciseName } from "../utils/exerciseName";
 import { toastError } from "../store/toastStore";
+import { useExerciseGuideStore } from "../store/exerciseGuideStore";
 import Skeleton from "../components/Skeleton";
 
 export default function Plans() {
@@ -117,6 +118,7 @@ export default function Plans() {
 
 function DayDetail({ day }: { day: ApiProgramDay }) {
   const { t, locale } = useTranslation();
+  const openGuide = useExerciseGuideStore((s) => s.open);
   return (
     <article className="rounded-2xl border border-hairline bg-panel p-4">
       <h3 className="text-sm font-semibold text-ink-soft">
@@ -136,9 +138,15 @@ function DayDetail({ day }: { day: ApiProgramDay }) {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-xs text-ink-faint">{t(slot.slotName)}</p>
-                  <p className="mt-0.5 text-sm font-medium text-ink">
+                  <button
+                    onClick={() => openGuide(slot.exercise)}
+                    className="mt-0.5 flex items-center gap-1.5 text-left text-sm font-medium text-ink"
+                  >
                     {exerciseName(slot.exercise, locale)}
-                  </p>
+                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                      ?
+                    </span>
+                  </button>
                 </div>
                 <p className="whitespace-nowrap text-right text-xs text-emerald-600 dark:text-emerald-300">
                   {t("plans.suggested", { sets: slot.suggestedSets, reps: repsText })}

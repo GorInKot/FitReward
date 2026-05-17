@@ -15,6 +15,7 @@ import { updateProfile } from "./utils/api";
 import AchievementToast from "./components/AchievementToast";
 import AppGuide from "./components/AppGuide";
 import Toast from "./components/Toast";
+import ExerciseGuideModal from "./components/ExerciseGuideModal";
 
 export default function App() {
   useTelegram();
@@ -140,6 +141,7 @@ export default function App() {
       <AchievementToast />
       <AppGuide />
       <Toast />
+      <ExerciseGuideModal />
     </div>
   );
 }
