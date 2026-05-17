@@ -7,9 +7,10 @@ import {
   getDashboard,
   getMetrics
 } from "../utils/api";
-import { useTranslation } from "../i18n";
+import { useTranslation, TranslateFn } from "../i18n";
 import { exerciseName } from "../utils/exerciseName";
 import { toastError } from "../store/toastStore";
+import { useProfileStore } from "../store/profileStore";
 import Skeleton from "../components/Skeleton";
 
 export default function Progress() {
@@ -22,6 +23,7 @@ export default function Progress() {
   const [bodyFat, setBodyFat] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const trainingDays = useProfileStore((s) => s.profile?.trainingDays);
 
   const load = useCallback(async () => {
     try {
@@ -137,7 +139,7 @@ export default function Progress() {
       {dashboard && (
         <article className="rounded-2xl border border-hairline bg-panel p-4">
           <h3 className="text-sm font-semibold text-ink-soft">{t("progress.calendarTitle")}</h3>
-          <Calendar days={dashboard.calendar} />
+          <Calendar days={dashboard.calendar} trainingDays={trainingDays} t={t} />
         </article>
       )}
 
@@ -261,20 +263,58 @@ function WeightChart({
   );
 }
 
-function Calendar({ days }: { days: { date: string; trained: boolean }[] }) {
+// Weekday (0=Sun..6=Sat) for a "YYYY-MM-DD" string, parsed as a local date so
+// the result is timezone-stable (avoids the UTC-shift of `new Date(isoDate)`).
+function weekdayOf(isoDate: string): number {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return new Date(y, m - 1, d).getDay();
+}
+
+function Calendar({
+  days,
+  trainingDays,
+  t
+}: {
+  days: { date: string; trained: boolean }[];
+  trainingDays: number[] | undefined;
+  t: TranslateFn;
+}) {
   return (
-    <div className="mt-3 grid grid-cols-7 gap-1">
-      {days.map((day) => (
-        <div
-          key={day.date}
-          className={`aspect-square rounded-md text-center text-[10px] leading-[1.8] ${
-            day.trained ? "bg-emerald-500 text-slate-950" : "bg-elevated text-ink-faint"
-          }`}
-          title={day.date}
-        >
-          {Number(day.date.slice(8, 10))}
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="mt-3 grid grid-cols-7 gap-1">
+        {days.map((day) => {
+          const extra =
+            day.trained &&
+            trainingDays !== undefined &&
+            trainingDays.length > 0 &&
+            !trainingDays.includes(weekdayOf(day.date));
+          return (
+            <div
+              key={day.date}
+              className={`aspect-square rounded-md text-center text-[10px] leading-[1.8] ${
+                extra
+                  ? "bg-sky-500 text-slate-950"
+                  : day.trained
+                    ? "bg-emerald-500 text-slate-950"
+                    : "bg-elevated text-ink-faint"
+              }`}
+              title={day.date}
+            >
+              {Number(day.date.slice(8, 10))}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex gap-4 text-[10px] text-ink-faint">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
+          {t("progress.calendarLegendScheduled")}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm bg-sky-500" />
+          {t("progress.calendarLegendExtra")}
+        </span>
+      </div>
+    </>
   );
 }

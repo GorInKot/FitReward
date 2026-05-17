@@ -348,6 +348,8 @@ export const ru = {
     notesLabel: "Заметка",
     deleteConfirm: "Удалить запись?",
     calendarTitle: "Последние 30 дней",
+    calendarLegendScheduled: "По расписанию",
+    calendarLegendExtra: "Дополнительная",
     prTitle: "Личные рекорды",
     prEmpty: "Залогируй сет с весом — здесь появятся PR",
     prValue: "{weight} × {reps}",

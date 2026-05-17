@@ -348,6 +348,8 @@ export const en = {
     notesLabel: "Note",
     deleteConfirm: "Delete this entry?",
     calendarTitle: "Last 30 days",
+    calendarLegendScheduled: "On schedule",
+    calendarLegendExtra: "Extra session",
     prTitle: "Personal records",
     prEmpty: "Log a set with weight — PRs will appear here",
     prValue: "{weight} × {reps}",
