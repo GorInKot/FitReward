@@ -79,7 +79,7 @@ export const en = {
     workout: {
       tag: "Workout",
       title: "Workout",
-      body: "Start a session and log every set: weight, reps and RIR — reps in reserve. Each exercise shows your last result and today's target."
+      body: "Start a session and log every set: weight, reps and RIR — reps in reserve. Each exercise shows your last result, today's target and a «?» button with proper technique. On a day outside your schedule the app asks before starting."
     },
     plans: {
       tag: "Plans",
@@ -89,12 +89,12 @@ export const en = {
     progress: {
       tag: "Progress",
       title: "Progress",
-      body: "Body measurements and a weight chart, a 30-day workout calendar and personal records — see how you're moving toward your goal."
+      body: "Body measurements and a weight chart, personal records and a 30-day calendar. In the calendar, green marks workouts on schedule and blue marks extra sessions."
     },
     profile: {
       tag: "Profile",
       title: "Profile",
-      body: "Personal data, language, bot reminders and redoing onboarding. You can always reopen this guide from here."
+      body: "Personal data, training days, theme, language and bot reminders. The weekdays you pick set your schedule — reminders follow them. You can always reopen this guide from here."
     }
   },
   profile: {
